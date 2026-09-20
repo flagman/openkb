@@ -9,7 +9,8 @@ static const char *outdir = ".";
 static Uint32 last_inject = 0, interval = 500;
 static int pending_up = 0; static SDL_Keycode pending_key = 0;
 static int done_script = 0; static int quit_sent = 0;
-static unsigned char *lastframe = NULL; static size_t lastsize = 0; static int nframes = 0;
+static int nframes = 0;
+static unsigned char *lastframe = NULL; static size_t lastsize = 0;
 
 static void init(void) {
 	static int inited = 0; if (inited) return; inited = 1;
@@ -35,7 +36,7 @@ int my_PollEvent(SDL_Event *ev) {
 	if (cursor && *cursor) {
 		char *comma = strchr(cursor, ','); if (comma) *comma = 0;
 		SDL_Keycode key = SDL_GetKeyFromName(cursor);
-		fprintf(stderr, "[harness] key '%s' -> %d\n", cursor, (int)key);
+		fprintf(stderr, "[harness] key '%s' -> %d (after frame %d)\n", cursor, (int)key, nframes - 1);
 		cursor = comma ? comma + 1 : cursor + strlen(cursor);
 		last_inject = now;
 		memset(ev, 0, sizeof *ev); ev->type = SDL_KEYDOWN; ev->key.keysym.sym = key;
