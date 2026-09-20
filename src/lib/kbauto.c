@@ -80,6 +80,13 @@ struct KBfileid fingerprints[] = {
 		0,
 		KBFAMILY_DOS, KBTYPE_GROUP,
 	},
+	{	/* Any KB.EXE with an MZ header: patched/translated releases keep the
+		 * 1990 data layout; more specific entries below take precedence. */
+		"KB", "EXE", 0,
+		"MZ", 2, 0,
+		2,
+		KBFAMILY_DOS, KBTYPE_EXE,
+	},
 	{
 		"KB", "EXE", 0,//113718
 		"Copyright (C) 1990-95 New World Computing, Inc", 46, 0x15EA5,
