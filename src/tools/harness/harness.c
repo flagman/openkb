@@ -54,19 +54,26 @@ int my_PollEvent(SDL_Event *ev) {
 	if (now - last_inject < interval) return 0;
 	if (cursor && *cursor) {
 		char *comma = strchr(cursor, ','); if (comma) *comma = 0;
-		int hold = 0, release = 0;
+		/* "Name" = press+release, "+Name" = hold (no release), "-Name" = release,
+		 * "~Name" = repeated key-down of a held key (what a kernel autorepeat looks like),
+		 * "LShift" alone holds the shift modifier (legacy spelling) */
+		int hold = 0, release = 0, repeat = 0;
+		const char *label = cursor;
 		if (!strcmp(cursor, "LShift")) hold = 1;
-		if (!strcmp(cursor, "-LShift")) { release = 1; cursor++; }
+		if (cursor[0] == '+') { hold = 1; cursor++; }
+		if (cursor[0] == '-') { release = 1; cursor++; }
+		if (cursor[0] == '~') { repeat = 1; cursor++; }
 		SDL_Keycode key = SDL_GetKeyFromName(!strcmp(cursor, "LShift") ? "Left Shift" : cursor);
-		fprintf(stderr, "[harness] key '%s' -> %d (after frame %d)\n", cursor, (int)key, nframes - 1);
+		fprintf(stderr, "[harness] key '%s' -> %d (after frame %d)\n", label, (int)key, nframes - 1);
 		cursor = comma ? comma + 1 : cursor + strlen(cursor);
 		last_inject = now;
-		if (hold) SDL_SetModState(KMOD_LSHIFT);
-		if (release) SDL_SetModState(KMOD_NONE);
+		if (key == SDLK_LSHIFT && hold) SDL_SetModState(KMOD_LSHIFT);
+		if (key == SDLK_LSHIFT && release) SDL_SetModState(KMOD_NONE);
 		memset(ev, 0, sizeof *ev); ev->type = release ? SDL_KEYUP : SDL_KEYDOWN; ev->key.keysym.sym = key;
 		ev->key.keysym.mod = SDL_GetModState();
+		ev->key.repeat = repeat;
 		ev->key.keysym.scancode = SDL_GetScancodeFromKey(key); ev->key.state = release ? SDL_RELEASED : SDL_PRESSED;
-		if (!hold && !release) { pending_up = 1; pending_key = key; }
+		if (!hold && !release && !repeat) { pending_up = 1; pending_key = key; }
 		return 1;
 	}
 	if (!done_script) { done_script = 1; last_inject = now; return 0; }
