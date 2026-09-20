@@ -14,12 +14,12 @@ Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-
 |---------------|-----------------------------------------------|
 | D-pad         | Move the hero / move the cursor in menus      |
 | L1 + D-pad    | Diagonal moves (d-pad turned 45° left)        |
-| R1            | Wait (skip the unit's turn in combat, end week on the map) |
+| R1 + D-pad    | Diagonal moves (d-pad turned 45° right)       |
 | East button (A on Anbernic) / Start | Confirm, continue (Enter) |
 | South button (B on Anbernic) | Back, close (Esc)   |
 | Select + Start | Quit the port (use Options > Quit and Save first to keep progress) |
 | X             | Options menu with every command               |
-| Y             | View character                                |
+| Y             | Wait (skip the unit's turn in combat, end week on the map) |
 | L2            | View army                                     |
 | R2            | Use magic                                     |
 | Left stick    | Same as d-pad                                 |

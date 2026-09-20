@@ -311,13 +311,62 @@ static SDL_Keycode diag_of(SDL_Keycode k) {
 	return 0;
 }
 
+static SDL_Keycode diag_cw_of(SDL_Keycode k) {
+	if (k == SDLK_UP) return SDLK_PAGEUP;
+	if (k == SDLK_RIGHT) return SDLK_PAGEDOWN;
+	if (k == SDLK_DOWN) return SDLK_END;
+	if (k == SDLK_LEFT) return SDLK_HOME;
+	return 0;
+}
+
 static SDL_Surface *hint_backup = NULL;
 static SDL_Rect hint_rect;
+
+/* Tiny 32-bit drawing helpers for the HUD hint */
+static void hud_pixel(SDL_Surface *s, int x, int y, Uint32 c) {
+	if (x < 0 || y < 0 || x >= s->w || y >= s->h) return;
+	((Uint32 *)((Uint8 *)s->pixels + y * s->pitch))[x] = c;
+}
+static void hud_line(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 c) {
+	int dx = abs(x1 - x0), dy = -abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
+	for (;;) {
+		hud_pixel(s, x0, y0, c);
+		if (x0 == x1 && y0 == y1) break;
+		if (2 * err >= dy) { err += dy; x0 += sx; }
+		if (2 * err <= dx) { err += dx; y0 += sy; }
+	}
+}
+/* Diagonal arrow inside a cell: dx,dy in {-1,1} give the direction */
+static void hud_diag_arrow(SDL_Surface *s, SDL_Rect *cell, int dx, int dy, Uint32 c) {
+	int cx = cell->x + cell->w / 2, cy = cell->y + cell->h / 2;
+	int r = (cell->w < cell->h ? cell->w : cell->h) / 2 - 1;
+	int tx = cx + dx * r, ty = cy + dy * r, hl = r / 2 + 1;
+	hud_line(s, cx - dx * r, cy - dy * r, tx, ty, c);
+	hud_line(s, tx, ty, tx - dx * hl, ty, c);
+	hud_line(s, tx, ty, tx, ty - dy * hl, c);
+}
+static void hud_darken(SDL_Surface *s, SDL_Rect *r) {
+	int x, y;
+	for (y = r->y; y < r->y + r->h; y++) {
+		Uint32 *p = (Uint32 *)((Uint8 *)s->pixels + y * s->pitch);
+		int edge = (y == r->y || y == r->y + r->h - 1) ? 2 : 0; /* soft corners */
+		for (x = r->x + edge; x < r->x + r->w - edge; x++)
+			p[x] = (p[x] >> 2) & 0x3F3F3F3F;
+	}
+}
 
 static int KB_hint_draw(int restore) {
 	SDL_Surface *screen = sys->screen;
 	SDL_Rect *fs = &sys->font_size;
-	Uint32 colors[] = { 0x0000AA, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF }; /* [0] background, [1] text */
+	SDL_Keymod mod = SDL_GetModState();
+	Uint32 colors[] = { 0x000000, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF };
+	Uint32 white = SDL_MapRGB(screen->format, 255, 255, 255);
+	const char *label;
+	SDL_Keycode (*diag)(SDL_Keycode);
+	static const SDL_Keycode arrows[4] = { SDLK_UP, SDLK_RIGHT, SDLK_DOWN, SDLK_LEFT };
+	static const char glyph[4] = { '\x18', '\x1B', '\x19', '\x1A' };
+	SDL_Rect cell;
+	int i;
 
 	if (restore) {
 		if (hint_backup) {
@@ -327,21 +376,37 @@ static int KB_hint_draw(int restore) {
 		}
 		return 0;
 	}
-	if (!sys->conf->gamepad || !(SDL_GetModState() & KMOD_SHIFT)) return 0;
+	if (!sys->conf->gamepad) return 0;
+	if (mod & KMOD_SHIFT) { label = "L1"; diag = diag_of; }
+	else if (mod & KMOD_ALT) { label = "R1"; diag = diag_cw_of; }
+	else return 0;
 
-	hint_rect.w = fs->w * 32;
-	hint_rect.h = fs->h * 4;
-	hint_rect.x = fs->w;
-	hint_rect.y = fs->h * 2;
+	/* "L1  ^/  >/  v/  </" : label + four (arrow, diagonal) pairs, 1 cell apart */
+	hint_rect.w = fs->w * (3 + 4 * 3 - 1 + 2);
+	hint_rect.h = fs->h * 2;
+	hint_rect.x = local.map.x + fs->w / 2;
+	hint_rect.y = local.map.y + local.map.h - hint_rect.h - fs->h / 2;
 	hint_backup = SDL_CreateRGBSurfaceWithFormat(0, hint_rect.w, hint_rect.h, 32, screen->format->format);
 	if (!hint_backup) return 0;
 	SDL_BlitSurface(screen, &hint_rect, hint_backup, NULL);
 
-	SDL_TextRect(screen, &hint_rect, colors[1], colors[0], 1);
+	hud_darken(screen, &hint_rect);
+	SDL_SetColorKey(sys->font, SDL_TRUE, 0);	/* text without its own background */
 	KB_icolor(colors);
-	KB_iloc(hint_rect.x + fs->w, hint_rect.y + fs->h);
-	KB_iprint("L1+\x18 Up-Left    L1+\x1B Up-Right\n"
-	          "L1+\x19 Down-Right L1+\x1A Down-Left");
+	KB_iloc(hint_rect.x + fs->w, hint_rect.y + fs->h / 2);
+	KB_iprint(label);
+	cell.w = fs->w; cell.h = fs->h; cell.y = hint_rect.y + fs->h / 2;
+	for (i = 0; i < 4; i++) {
+		SDL_Keycode d = diag(arrows[i]);
+		int dx = (d == SDLK_PAGEUP || d == SDLK_PAGEDOWN) ? 1 : -1;
+		int dy = (d == SDLK_HOME || d == SDLK_PAGEUP) ? -1 : 1;
+		char g[2] = { glyph[i], 0 };
+		KB_iloc(hint_rect.x + fs->w * (4 + i * 3), cell.y);
+		KB_iprint(g);
+		cell.x = hint_rect.x + fs->w * (5 + i * 3);
+		hud_diag_arrow(screen, &cell, dx, dy, white);
+	}
+	SDL_SetColorKey(sys->font, SDL_FALSE, 0);
 	return 1;
 }
 
@@ -462,12 +527,16 @@ int KB_event(KBgamestate *state) {
 		if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
 			SDL_Keycode k = event.key.keysym.sym;
 			SDL_Keycode d = diag_of(k);
-			if (k == SDLK_LSHIFT || k == SDLK_RSHIFT) KB_flip(sys);
-			if (d && event.type == SDL_KEYDOWN && (event.key.keysym.mod & KMOD_SHIFT)) {
+			if (k == SDLK_LSHIFT || k == SDLK_RSHIFT || k == SDLK_LALT || k == SDLK_RALT) KB_flip(sys);
+			if (d && event.type == SDL_KEYDOWN && (event.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))) {
+				if (!(event.key.keysym.mod & KMOD_SHIFT)) d = diag_cw_of(k);	/* Alt: the other rotation */
 				event.key.keysym.sym = d;
 				event.key.keysym.scancode = SDL_GetScancodeFromKey(d);
 			}
-			if (d && event.type == SDL_KEYUP) kbd_state[SDL_GetScancodeFromKey(d)] = 0;
+			if (d && event.type == SDL_KEYUP) {
+				kbd_state[SDL_GetScancodeFromKey(d)] = 0;
+				kbd_state[SDL_GetScancodeFromKey(diag_cw_of(k))] = 0;
+			}
 		}
 
 		/* Menu navigation: arrows move between rows, Enter picks the row */
@@ -644,10 +713,9 @@ char* KB_KeyLabel(int key1, int key2) {
 		if (key1 == SDLK_PAGEDOWN) sprintf(val1, "L1+\x19");
 		if (key1 == SDLK_END) sprintf(val1, "L1+\x1A");
 		if (key1 == SDLK_o) sprintf(val1, "   X");
-		if (key1 == SDLK_v) sprintf(val1, "   Y");
 		if (key1 == SDLK_a) sprintf(val1, "  L2");
 		if (key1 == SDLK_u) sprintf(val1, "  R2");
-		if (key1 == SDLK_w) sprintf(val1, "  R1");
+		if (key1 == SDLK_w) sprintf(val1, "   Y");
 		if (key1 == SDLK_SPACE) sprintf(val1, " SPC");
 		sprintf(buf, "%s", val1);
 		return &buf[0];

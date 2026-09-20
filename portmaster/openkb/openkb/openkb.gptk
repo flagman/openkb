@@ -21,12 +21,12 @@ right = right
 b = enter
 a = esc
 x = o
-y = v
+y = w
 
-# Hold L1 (Shift for the game) and press the d-pad for diagonal moves;
-# the game shows a hint while it is held
+# Hold L1 or R1 (Shift / Alt for the game) and press the d-pad for diagonal
+# moves, each turns the d-pad 45 degrees its own way; the game shows a hint
 l1 = shift
-r1 = w
+r1 = alt
 
 l2 = a
 r2 = u
