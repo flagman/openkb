@@ -588,6 +588,7 @@ char* KB_KeyLabel(int key1, int key2) {
 		if (key1 == SDLK_v) sprintf(val1, "   Y");
 		if (key1 == SDLK_a) sprintf(val1, "  L2");
 		if (key1 == SDLK_u) sprintf(val1, "  R2");
+		if (key1 == SDLK_w) sprintf(val1, "  R1");
 		if (key1 == SDLK_SPACE) sprintf(val1, " SPC");
 		sprintf(buf, "%s", val1);
 		return &buf[0];
