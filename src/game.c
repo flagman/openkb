@@ -3177,13 +3177,13 @@ int gold_or_leadership(KBgame *game, int gold, int leadership) {
 				"the peasants, increasing\n"
 				"your leadership by %d.",  gold, leadership);
 			SDL_Rect *text = KB_BottomBox(buf, "", 0);
-			/* Make the A) and B) lines selectable rows (text starts 2 lines down) */
+			/* Make the A) and B) lines (4th and 5th line of the header text) selectable rows */
 			{
 				SDL_Rect *fs = &sys->font_size;
 				int i;
 				for (i = 0; i < 2; i++) {
 					two_choices.spots[i].coords.x = text->x;
-					two_choices.spots[i].coords.y = text->y + fs->h / 4 + (2 + 3 + i) * fs->h;
+					two_choices.spots[i].coords.y = text->y - fs->h / 4 - fs->h / 8 + (3 + i) * fs->h;
 					two_choices.spots[i].coords.w = fs->w * 27;
 					two_choices.spots[i].coords.h = fs->h;
 				}
