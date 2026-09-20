@@ -101,6 +101,12 @@ KBgamestate character_selection = {
 		{	_AREA(0, 0, 0, 0), SDLK_c, 0, 0      	},
 		{	_AREA(0, 0, 0, 0), SDLK_d, 0, 0      	},
 		{	_AREA(180, 8, 140, 8), SDLK_l, 0, 0   	},
+		/* Gamepad: arrows cycle A-D-L, Enter picks */
+		{	_NON, SDLK_LEFT, 0, KFLAG_RETKEY	},
+		{	_NON, SDLK_RIGHT, 0, KFLAG_RETKEY	},
+		{	_NON, SDLK_UP, 0, KFLAG_RETKEY	},
+		{	_NON, SDLK_DOWN, 0, KFLAG_RETKEY	},
+		{	_NON, SDLK_RETURN, 0, KFLAG_RETKEY	},
 		0,
 	},
 	0

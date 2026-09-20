@@ -757,6 +757,7 @@ KBgame *select_game(KBconfig *conf) {
 	int redraw = 1;
 
 	int credits = 1;
+	int sel = 0;	/* 0-3 = class A-D, 4 = load */
 
 	KBgame *game = NULL;
 
@@ -767,6 +768,11 @@ KBgame *select_game(KBconfig *conf) {
 	while (!done) {
 
 		key = KB_event(&character_selection);
+
+		/* Keyboard/gamepad selection without letters */
+		if (key == SDLK_LEFT || key == SDLK_UP)    { sel = (sel + 4) % 5; redraw = 1; key = 0; }
+		if (key == SDLK_RIGHT || key == SDLK_DOWN) { sel = (sel + 1) % 5; redraw = 1; key = 0; }
+		if (key == SDLK_RETURN) key = sel + 1;
 
 		if (redraw) {
 
@@ -780,7 +786,10 @@ KBgame *select_game(KBconfig *conf) {
 			if (!credits) {
 				KB_iloc(local.status.x, local.status.y);
 				KB_icolor(local.status_colors);
-				KB_iprint("Select Char A-D or L-Load saved game");
+				if (sel < 4)
+					KB_iprintf("Select: %c %-9s   \x1B\x1A Enter, L-Load", 'A' + sel, classes[sel][0].title);
+				else
+					KB_iprint ("Select: L Load saved game   \x1B\x1A Enter");
 			}
 
 			KB_flip(sys);
