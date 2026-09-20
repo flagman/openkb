@@ -346,10 +346,12 @@ static void hud_diag_arrow(SDL_Surface *s, SDL_Rect *cell, int dx, int dy, Uint3
 static void hud_darken(SDL_Surface *s, SDL_Rect *r) {
 	int x, y;
 	for (y = r->y; y < r->y + r->h; y++) {
-		Uint32 *p = (Uint32 *)((Uint8 *)s->pixels + y * s->pitch);
+		Uint32 *p;
 		int edge = (y == r->y || y == r->y + r->h - 1) ? 2 : 0; /* soft corners */
+		if (y < 0 || y >= s->h) continue;
+		p = (Uint32 *)((Uint8 *)s->pixels + y * s->pitch);
 		for (x = r->x + edge; x < r->x + r->w - edge; x++)
-			p[x] = (p[x] >> 2) & 0x3F3F3F3F;
+			if (x >= 0 && x < s->w) p[x] = (p[x] >> 2) & 0x3F3F3F3F;
 	}
 }
 
@@ -384,6 +386,11 @@ static int KB_hint_draw(int restore) {
 	hint_rect.h = fs->h * 2;
 	hint_rect.x = local.map.x + fs->w / 2;
 	hint_rect.y = local.map.y + local.map.h - hint_rect.h - fs->h / 2;
+	/* Keep it on screen whatever local.map holds (combat sets it up differently) */
+	if (hint_rect.x < 0) hint_rect.x = 0;
+	if (hint_rect.y < 0) hint_rect.y = 0;
+	if (hint_rect.x + hint_rect.w > screen->w) hint_rect.x = screen->w - hint_rect.w;
+	if (hint_rect.y + hint_rect.h > screen->h) hint_rect.y = screen->h - hint_rect.h;
 	hint_backup = SDL_CreateRGBSurfaceWithFormat(0, hint_rect.w, hint_rect.h, 32, screen->format->format);
 	if (!hint_backup) return 0;
 	SDL_BlitSurface(screen, &hint_rect, hint_backup, NULL);

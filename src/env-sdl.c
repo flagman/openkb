@@ -609,7 +609,7 @@ char **STRL_LoadArray(int id, int sub_id) {
 		char *item = KB_strlist_ind(list, i);
 		int len = strlen(item);
 
-		arr[i] = malloc(sizeof(char) * len);
+		arr[i] = malloc(sizeof(char) * (len + 1));	/* + terminator */
 		if (arr[i] == NULL) { /* Out of memory */
 			STRL_FreeArray(arr);
 			free(list);
