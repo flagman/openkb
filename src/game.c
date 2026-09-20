@@ -2167,8 +2167,10 @@ void audience_with_king(KBgame *game) {
 	int i;
 
 	captured = player_captured(game);
-
-	needed = classes[game->class][game->rank + 1].villains_needed - captured;
+	if (game->rank < MAX_RANKS - 1)
+		needed = classes[game->class][game->rank + 1].villains_needed - captured;
+	else
+		needed = 0;	/* top rank: nothing left to earn */
 
 	KB_BottomBox(NULL, 
 		"Trumpets announce your\n"
