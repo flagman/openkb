@@ -303,19 +303,17 @@ static int nav_hover_is_row(KBgamestate *st) {
  * Diagonal moves for a gamepad: while Shift (L1 in the port) is held,
  * arrows become Home/PgUp/PgDn/End and a hint box shows the layout.
  */
+/* L1 (Shift): Up/Down go to the left diagonals */
 static SDL_Keycode diag_of(SDL_Keycode k) {
 	if (k == SDLK_UP) return SDLK_HOME;
-	if (k == SDLK_RIGHT) return SDLK_PAGEUP;
-	if (k == SDLK_DOWN) return SDLK_PAGEDOWN;
-	if (k == SDLK_LEFT) return SDLK_END;
+	if (k == SDLK_DOWN) return SDLK_END;
 	return 0;
 }
 
+/* R1 (Alt): Up/Down go to the right diagonals */
 static SDL_Keycode diag_cw_of(SDL_Keycode k) {
 	if (k == SDLK_UP) return SDLK_PAGEUP;
-	if (k == SDLK_RIGHT) return SDLK_PAGEDOWN;
-	if (k == SDLK_DOWN) return SDLK_END;
-	if (k == SDLK_LEFT) return SDLK_HOME;
+	if (k == SDLK_DOWN) return SDLK_PAGEDOWN;
 	return 0;
 }
 
@@ -363,8 +361,8 @@ static int KB_hint_draw(int restore) {
 	Uint32 white = SDL_MapRGB(screen->format, 255, 255, 255);
 	const char *label;
 	SDL_Keycode (*diag)(SDL_Keycode);
-	static const SDL_Keycode arrows[4] = { SDLK_UP, SDLK_RIGHT, SDLK_DOWN, SDLK_LEFT };
-	static const char glyph[4] = { '\x18', '\x1B', '\x19', '\x1A' };
+	static const SDL_Keycode arrows[2] = { SDLK_UP, SDLK_DOWN };
+	static const char glyph[2] = { '\x18', '\x19' };
 	SDL_Rect cell;
 	int i;
 
@@ -381,8 +379,8 @@ static int KB_hint_draw(int restore) {
 	else if (mod & KMOD_ALT) { label = "R1"; diag = diag_cw_of; }
 	else return 0;
 
-	/* "L1  ^/  >/  v/  </" : label + four (arrow, diagonal) pairs, 1 cell apart */
-	hint_rect.w = fs->w * (3 + 4 * 3 - 1 + 2);
+	/* "L1  ^/  v/" : label + two (arrow, diagonal) pairs, 1 cell apart */
+	hint_rect.w = fs->w * (3 + 2 * 3 - 1 + 2);
 	hint_rect.h = fs->h * 2;
 	hint_rect.x = local.map.x + fs->w / 2;
 	hint_rect.y = local.map.y + local.map.h - hint_rect.h - fs->h / 2;
@@ -396,7 +394,7 @@ static int KB_hint_draw(int restore) {
 	KB_iloc(hint_rect.x + fs->w, hint_rect.y + fs->h / 2);
 	KB_iprint(label);
 	cell.w = fs->w; cell.h = fs->h; cell.y = hint_rect.y + fs->h / 2;
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 2; i++) {
 		SDL_Keycode d = diag(arrows[i]);
 		int dx = (d == SDLK_PAGEUP || d == SDLK_PAGEDOWN) ? 1 : -1;
 		int dy = (d == SDLK_HOME || d == SDLK_PAGEUP) ? -1 : 1;
@@ -529,7 +527,7 @@ int KB_event(KBgamestate *state) {
 			SDL_Keycode d = diag_of(k);
 			if (k == SDLK_LSHIFT || k == SDLK_RSHIFT || k == SDLK_LALT || k == SDLK_RALT) KB_flip(sys);
 			if (d && event.type == SDL_KEYDOWN && (event.key.keysym.mod & (KMOD_SHIFT | KMOD_ALT))) {
-				if (!(event.key.keysym.mod & KMOD_SHIFT)) d = diag_cw_of(k);	/* Alt: the other rotation */
+				if (!(event.key.keysym.mod & KMOD_SHIFT)) d = diag_cw_of(k);	/* Alt (R1): right-hand diagonals */
 				event.key.keysym.sym = d;
 				event.key.keysym.scancode = SDL_GetScancodeFromKey(d);
 			}
@@ -709,9 +707,9 @@ char* KB_KeyLabel(int key1, int key2) {
 		if (key1 == SDLK_LEFT) sprintf(val1, "   \x1A");
 		if (key1 == SDLK_RIGHT) sprintf(val1, "   \x1B");
 		if (key1 == SDLK_HOME) sprintf(val1, "L1+\x18");
-		if (key1 == SDLK_PAGEUP) sprintf(val1, "L1+\x1B");
-		if (key1 == SDLK_PAGEDOWN) sprintf(val1, "L1+\x19");
-		if (key1 == SDLK_END) sprintf(val1, "L1+\x1A");
+		if (key1 == SDLK_END) sprintf(val1, "L1+\x19");
+		if (key1 == SDLK_PAGEUP) sprintf(val1, "R1+\x18");
+		if (key1 == SDLK_PAGEDOWN) sprintf(val1, "R1+\x19");
 		if (key1 == SDLK_o) sprintf(val1, "   X");
 		if (key1 == SDLK_a) sprintf(val1, "  L2");
 		if (key1 == SDLK_u) sprintf(val1, "  R2");

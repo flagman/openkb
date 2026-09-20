@@ -23,8 +23,8 @@ a = esc
 x = o
 y = w
 
-# Hold L1 or R1 (Shift / Alt for the game) and press the d-pad for diagonal
-# moves, each turns the d-pad 45 degrees its own way; the game shows a hint
+# Diagonals: L1 + Up/Down = up-left / down-left, R1 + Up/Down = up-right /
+# down-right (Shift / Alt for the game, which shows a hint while held)
 l1 = shift
 r1 = alt
 
