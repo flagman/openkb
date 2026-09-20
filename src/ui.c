@@ -678,7 +678,6 @@ SDL_Rect* KB_TopBox(byte flag, const char *str, ...) {
 	/* Possible varags */
 	va_list argptr;
 	va_start(argptr, str);
-	va_end(argptr); //too early?
 
 	/* Get colors */
 	colors = local.status_colors;
@@ -701,6 +700,7 @@ SDL_Rect* KB_TopBox(byte flag, const char *str, ...) {
 	KB_iloc(local.status.x, local.status.y + sys->font_size.h / 8);
 	KB_icurs(padding, 0);
 	KB_ivprintf(str, argptr);
+	va_end(argptr);
 
 	/* Update screen and possibly wait */
 	if (flag & MSG_FLUSH) KB_flip(sys);
