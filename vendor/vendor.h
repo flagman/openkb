@@ -19,7 +19,6 @@ extern void inprint(SDL_Surface *dst, const char *str, Uint32 x, Uint32 y);
 extern SDL_Surface* get_inline_font(void);
 
 /* savepng.c */
-#include "savepng.h"
 
 #endif
 

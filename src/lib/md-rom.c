@@ -50,7 +50,7 @@ SDL_Surface *MD_LoadIMGROW_BUF(const char *buf, int frames) {
 
 	SDL_Rect f = { 0, 0, surf->w, surf->h };
 	SDL_ReplaceIndex(surf, &f, 0, 0xFF);
-	SDL_SetColorKey(surf, SDL_SRCCOLORKEY, 0xFF);
+	SDL_SetColorKey(surf, SDL_TRUE, 0xFF);
 
 	return surf;
 }

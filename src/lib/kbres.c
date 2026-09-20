@@ -29,9 +29,6 @@ RESOURCES
 #ifdef HAVE_LIBSDL
 /* SDL flavor. */
 #include <SDL.h>
-#ifdef HAVE_LIBSDL_IMAGE
-#include <SDL_image.h>
-#endif
 #include "kbfile.h"
 
 static SDL_AudioSpec _audio_mixer;
@@ -50,12 +47,13 @@ void KB_SetAudioSpec(SDL_AudioSpec *spec)
 
 SDL_Surface* SDL_CreatePALSurface(Uint32 width, Uint32 height)
 {
-	return SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 8, 0xFF, 0xFF, 0xFF, 0x00);
+	return SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
 }
 
 void SDL_ClonePalette(SDL_Surface *dst, SDL_Surface *src)
 {
-	SDL_SetPalette(dst, SDL_LOGPAL | SDL_PHYSPAL, src->format->palette->colors, 0, src->format->palette->ncolors);
+	if (dst->format->palette && src->format->palette)
+		SDL_SetPaletteColors(dst->format->palette, src->format->palette->colors, 0, src->format->palette->ncolors);
 }
 
 void SDL_BlitXBPP(const char *src, SDL_Surface *dest, SDL_Rect *dstrect, int bpp)
@@ -263,7 +261,7 @@ void put_mono_pal(SDL_Surface *dest)
 		pal[i].g = (Uint8)((color & 0x0000FF00) >> 8);
 		pal[i].b = (Uint8)((color & 0x000000FF));
 	}
-	SDL_SetColors(dest, pal, 0, 4);
+	KB_SetColors(dest, pal, 0, 4);
 }
 
 void put_cga_pal(SDL_Surface *dest)
@@ -276,7 +274,7 @@ void put_cga_pal(SDL_Surface *dest)
 		pal[i].g = (Uint8)((color & 0x0000FF00) >> 8);
 		pal[i].b = (Uint8)((color & 0x000000FF));
 	}
-	SDL_SetColors(dest, pal, 0, 4);
+	KB_SetColors(dest, pal, 0, 4);
 }
 
 void put_ega_pal(SDL_Surface *dest)
@@ -289,7 +287,7 @@ void put_ega_pal(SDL_Surface *dest)
 		pal[i].g = (Uint8)((color & 0x0000FF00) >> 8);
 		pal[i].b = (Uint8)((color & 0x000000FF));
 	}
-	SDL_SetColors(dest, pal, 0, 16);
+	KB_SetColors(dest, pal, 0, 16);
 }
 
 void put_vga_pal(SDL_Surface *dest)
@@ -302,7 +300,7 @@ void put_vga_pal(SDL_Surface *dest)
 		pal[i].g = (Uint8)((color & 0x0000FF00) >> 8);
 		pal[i].b = (Uint8)((color & 0x000000FF));
 	}
-	SDL_SetColors(dest, pal, 0, 256);
+	KB_SetColors(dest, pal, 0, 256);
 }
 
 void put_color_pal(SDL_Surface *dest, Uint32 fore, Uint32 back)
@@ -314,7 +312,7 @@ void put_color_pal(SDL_Surface *dest, Uint32 fore, Uint32 back)
 	pal[1].r = (Uint8)((fore & 0x00FF0000) >> 16); 
 	pal[1].g = (Uint8)((fore & 0x0000FF00) >> 8);
 	pal[1].b = (Uint8)((fore & 0x000000FF));
-	SDL_SetColors(dest, pal, 0, 2);
+	KB_SetColors(dest, pal, 0, 2);
 }
 
 SDL_Surface* KB_LoadIMG(const char *filename) {
@@ -331,10 +329,10 @@ SDL_Surface* KB_LoadIMG(const char *filename) {
 		surf = DOS_LoadRAWIMG_RW(rw, imgGroup_filename_to_bpp(filename));
 	if (surf == NULL)
 		surf = DOS_LoadIMGROW_RW(rw, 0, 255);
-#ifdef HAVE_LIBSDL_IMAGE
-	if (surf == NULL)
-		surf = IMG_Load_RW(rw, 0);
-#endif
+	if (surf == NULL) {
+		SDL_RWseek(rw, 0, RW_SEEK_SET);
+		surf = KB_LoadPNG_RW(rw);
+	}
 	if (surf == NULL)
 		surf = SDL_LoadBMP_RW(rw, 0);
 	SDL_RWclose(rw);

@@ -234,7 +234,7 @@ void DOS_SetPalette(KBmodule *mod, SDL_Surface *dst, int bpp) {
 
 		if (pal) {
 
-			SDL_SetColors(dst, pal, 0, 256);
+			KB_SetColors(dst, pal, 0, 256);
 	
 			return;
 		}

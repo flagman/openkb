@@ -6717,7 +6717,7 @@ int run_game(KBconfig *conf) {
 		KB_strcat(buffer, " the ");  
 		KB_strcat(buffer, classes[game->class][game->rank].title);
 		KB_strcat(buffer, " - openkb " PACKAGE_VERSION);
-		SDL_WM_SetCaption(buffer, buffer);
+		KB_setcaption(sys, buffer);
 
 		/* And log it into stdout */
 		KB_stdlog("%s the %s (%d days left)\n", game->name, classes[game->class][game->rank].title, game->days_left);

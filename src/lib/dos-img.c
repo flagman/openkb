@@ -364,7 +364,7 @@ void DOS_BlitRAWIMG(SDL_Surface *surf, SDL_Rect *destrect, const char *buf, byte
 	if (mask_pos) {
 		if (bpp != 8)	SDL_BlitMASK(&buf[mask_pos - 4], surf, destrect);
 		else			SDL_ReplaceIndex(surf, destrect, buf[0], 0xFF);
-		SDL_SetColorKey(surf, SDL_SRCCOLORKEY, 0xFF);
+		SDL_SetColorKey(surf, SDL_TRUE, 0xFF);
 	}
 }
 

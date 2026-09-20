@@ -249,17 +249,27 @@ int tunFile_play(struct tunFile *tun, Uint8 *stream, int len, int freq) {
 
 	//KB_debuglog(0, "%d/%d) play note [%d] %d hz for [%d] %d ms - %d samples\n", tun->cur_note, tun->num_notes, note_index, X, delay_index, ms_note_delay, samples_delay - tun->note_sampled);
 
-	samples = samples_delay < req_samples ? samples_delay : req_samples; // crude MIN()
+	/* Only what's left of this note, and no more than the buffer holds */
+	int left = (int)samples_delay - tun->note_sampled;
+	if (left < 0) left = 0;
+	samples = left < req_samples ? left : req_samples;
 
 	//TODO: using the powers of MATH we can actually determine cone_pos and cone_dir
 	// each time we need them, by something like
 	//sin(x * bay) * PEAK + LEAK
-	aword LEAK = 0x000F;	// min value for audio format
-	aword PEAK = 0xFFF0;	// max value for audio format
+#ifdef AUDIO_16BIT
+	/* Signed 16-bit output: a triangle wave around zero, well below full scale */
+	int LEAK = -0x3FFF;	// min value
+	int PEAK =  0x3FFF;	// max value
+#else
+	int LEAK = 0x0F;	// min value for unsigned 8-bit
+	int PEAK = 0xF0;	// max value for unsigned 8-bit
+#endif
 
-	aword bay = (X == 0 ? 0 : freq / X);
+	int bay = (X == 0 ? 0 : freq / X);	/* samples per period */
 
-	word speed = (bay == 0 ? 0 : (PEAK - LEAK) / bay);
+	/* One period is a full up-and-down sweep, so cover 2*(PEAK-LEAK) in 'bay' samples */
+	int speed = (bay == 0 ? 0 : 2 * (PEAK - LEAK) / bay);
 
 	//those values swap depending on audio format endianess:
 	int moveH = tun->move_f; // ammount of shift-right needed for First byte
@@ -281,16 +291,16 @@ int tunFile_play(struct tunFile *tun, Uint8 *stream, int len, int freq) {
 		else
 			tun->cone_pos += step;
 
-		aword sample = tun->cone_pos;
 #ifdef AUDIO_16BIT
+		Uint16 sample = (Uint16)(Sint16)tun->cone_pos;
 		/* Be pedantic about byte order */
-		aword H = (sample >> moveH) & 0x00FF;
-		aword L = (sample >> moveL) & 0x00FF;
-		*stream++ = (Uint8)L;
-		*stream++ = (Uint8)H;
+		Uint8 H = (sample >> moveH) & 0x00FF;
+		Uint8 L = (sample >> moveL) & 0x00FF;
+		*stream++ = L;
+		*stream++ = H;
 #else
 		/* 1-to-1 copy */
-		*stream++ = (Uint8)sample;
+		*stream++ = (Uint8)tun->cone_pos;
 #endif
 	}
 

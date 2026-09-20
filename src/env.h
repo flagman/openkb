@@ -29,6 +29,10 @@
 
 typedef struct KBenv {
 
+	SDL_Window *window;
+	SDL_Renderer *renderer;
+	SDL_Texture *texture;
+
 	SDL_Surface *screen;
 	SDL_Surface *font;
 	SDL_Surface *icon;
@@ -88,6 +92,7 @@ extern KBenv *KB_startENV(KBconfig *conf);
 extern void KB_stopENV(KBenv *env);
 
 extern void KB_flip(KBenv *env);
+extern void KB_setcaption(KBenv *env, const char *title);
 
 extern void KB_play(KBenv *env, KBsound *snd);
 

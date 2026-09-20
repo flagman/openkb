@@ -29,6 +29,8 @@
 
 #include "lib/kbstd.h"
 
+#include "../vendor/lodepng.h"
+
 struct KBconfig KBconf;
 
 extern int run_game(KBconfig *conf);
@@ -42,14 +44,7 @@ void dump_version(void) {
 
 	//KB_stdlog("==============================================================================\n");
 	KB_stdlog("Compiled with SDL %d.%d.%d\n",SDL_MAJOR_VERSION,SDL_MINOR_VERSION,SDL_PATCHLEVEL);
-#ifdef HAVE_LIBSDL_IMAGE
-	KB_stdlog("Compiled with SDL_Image\n");
-#endif
-	//* print LGPL license...
-#ifdef HAVE_LIBPNG
-	KB_stdlog("Compiled with libpng\n");
-#endif
-	//* print zlib license..
+	KB_stdlog("Compiled with lodepng %s\n", LODEPNG_VERSION_STRING);
 #ifdef DEBUG
 	KB_stdlog("Compiled with DEBUG define.\n");
 #endif
