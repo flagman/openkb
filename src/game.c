@@ -3838,7 +3838,8 @@ void end_of_week(KBgame *game, int num) {
 	for (i = 0; i < 5; i++) {
 		if (game->player_numbers[i] == 0) break;
 		byte troop_id = game->player_troops[i];
-		word cost = game->player_numbers[i] * troops[troop_id].recruit_cost;
+		/* Weekly upkeep is a tenth of the recruit cost, same as end_week() charges */
+		word cost = game->player_numbers[i] * (troops[troop_id].recruit_cost / 10);
 		army_cost += cost;
 		KB_icurs(14, 2 + i);
 		KB_iprintf("%-9s% 5d", troops[troop_id].name, cost);
