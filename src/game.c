@@ -589,8 +589,9 @@ KBgame *create_game(int pclass) {
 
 /* load game screen (pick savefile) */
 #define MAX_SAVES 9	/* as in the DOS original; also the size of the menu */
-#define SAVE_DELETE_D  (3 + MAX_SAVES)
-#define SAVE_DELETE_W  (4 + MAX_SAVES)
+/* KB_event returns hotspot index + 1: 1 Up, 2 Down, 3 Enter, 4.. the rows */
+#define SAVE_DELETE_D  (4 + MAX_SAVES)
+#define SAVE_DELETE_W  (5 + MAX_SAVES)
 
 /* List the *.DAT files of the save directory, return how many were found */
 static int scan_saves(const char *dir, char filename[][16], char fullname[][16]) {
@@ -737,7 +738,7 @@ rescan:
 			key = 0;
 			redraw = 1;
 		}
-		if (key >= 3 && key < 3 + MAX_SAVES) {
+		if (key >= 3 && key < 4 + MAX_SAVES) {
 			char buffer[PATH_LEN];
 			KB_dircpy(buffer, conf->save_dir);
 			KB_dirsep(buffer);
