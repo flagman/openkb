@@ -146,6 +146,7 @@ char *text_input(int max_len, int numbers_only, int x, int y, int loc_id, int tr
 
 	entered_name[0] = '\0';
 	int curs = 0;
+	int editing = 0;	/* a letter is being picked with Up/Down at the end of the name */
 
 	const char *twirl = "\x1D" "\x05" "\x1F" "\x1C" ; /* stands for: | / - \ */
 	byte twirl_pos = 0;
@@ -177,6 +178,34 @@ char *text_input(int max_len, int numbers_only, int x, int y, int loc_id, int tr
 			if (troop_frame > 3) troop_frame = 0;
 			redraw = 1;
 		} else
+		if (!numbers_only && (key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT)) {
+			/* Gamepad text entry: Up/Down pick a letter, Right moves on, Left erases */
+			static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+			int len = strlen(entered_name);
+			if (key == SDLK_LEFT) {
+				if (len > 0) entered_name[--len] = '\0';
+				editing = 0;
+			} else if (key == SDLK_RIGHT) {
+				editing = 0;	/* keep the letter, next Up/Down starts a new one */
+			} else {
+				const char *p;
+				int idx;
+				if (!editing) {
+					if (len >= max_len) { curs = len; redraw = 1; goto draw; }
+					entered_name[len] = 'A' - 1;	/* Up lands on 'A', Down on ' ' */
+					entered_name[++len] = '\0';
+					editing = 1;
+				}
+				p = strchr(alphabet, entered_name[len - 1]);
+				idx = p ? (int)(p - alphabet) : -1;
+				idx += (key == SDLK_UP ? 1 : -1);
+				if (idx < 0) idx = sizeof(alphabet) - 2;
+				if (idx > (int)sizeof(alphabet) - 2) idx = 0;
+				entered_name[len - 1] = alphabet[idx];
+			}
+			curs = len;
+			redraw = 1;
+		} else
 		if (numbers_only && (key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT)) {
 			/* Up/Down +-1, Left/Right +-10; 0 means "not entered" */
 			int i, lim = 1, val = atoi(entered_name);
@@ -203,17 +232,18 @@ char *text_input(int max_len, int numbers_only, int x, int y, int loc_id, int tr
 					entered_name[curs] = (char)key;
 					curs++;
 					entered_name[curs] = '\0';
+					editing = 0;
 					redraw = 1;
 				}
 			}
 		}
 
+draw:
 		if (redraw) {
 			if (loc_id != 0xFF) draw_location(loc_id, troop_id, troop_frame);
 
 			KB_iloc(x, y);
-			if (numbers_only) KB_iprintf("%-*s", max_len, entered_name); /* wipe old digits */
-			else KB_iprintf("%s", entered_name);
+			KB_iprintf("%-*s", max_len, entered_name); /* wipe leftovers of longer input */
 			KB_iloc(x + curs * fs->w, y);
 			KB_iprintf("%c", twirl[twirl_pos]);
 

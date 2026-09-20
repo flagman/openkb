@@ -24,7 +24,7 @@ Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-
 | Left stick    | Same as d-pad                                 |
 | Right stick   | Mouse pointer, click with L3 / R3             |
 
-Every menu can be walked with the d-pad and picked with A. In "How many?" prompts Up/Down change the number by 1 and Left/Right by 10; leaving it empty means "all".
+Every menu can be walked with the d-pad and picked with the confirm button. Name entry: Up/Down pick a letter, Right moves to the next one, Left erases, confirm accepts (an empty name becomes the class name). In "How many?" prompts Up/Down change the number by 1 and Left/Right by 10; leaving it empty means "all".
 
 ## Building
 
