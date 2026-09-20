@@ -739,6 +739,7 @@ void KB_play(KBenv *sys, KBsound *snd) {
 		return;
 	}
 
+	SDL_LockAudio();	/* the mixer thread reads sys->sound and the tune state */
 	sys->sound = NULL;
 
 	switch (snd->type) {	//TODO: make this a callback, for speed
@@ -757,6 +758,15 @@ void KB_play(KBenv *sys, KBsound *snd) {
 	}
 
 	sys->sound = snd;
+	SDL_UnlockAudio();
+}
+
+void KB_free_sound(KBenv *sys, KBsound *snd) {
+	if (snd == NULL) return;
+	SDL_LockAudio();
+	if (sys->sound == snd) sys->sound = NULL;
+	SDL_UnlockAudio();
+	free(snd);
 }
 void KBenv_audio_callback(void *userdata, Uint8 *stream, int len) {
 

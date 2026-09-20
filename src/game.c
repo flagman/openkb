@@ -3367,7 +3367,7 @@ void take_chest(KBgame *game) {
 	/* Remove chest tile from the map */
 	game->map[game->continent][game->y][game->x] = 0;
 
-	free(snd_chest);
+	KB_free_sound(sys, snd_chest);
 }
 
 void take_artifact(KBgame *game, byte num) {
@@ -3485,7 +3485,7 @@ void draw_victory(KBgame *game, word spoils, int villain_id, int captured) {
 	KB_flip(sys);
 	KB_Pause();
 
-	free(snd_victory);
+	KB_free_sound(sys, snd_victory);
 }
 
 void draw_defeat(KBgame *game) {
@@ -3507,7 +3507,7 @@ void draw_defeat(KBgame *game) {
 		"issues your commission and\n"
 		"sends you on your way.", "", MSG_HARDCODED | MSG_PAUSE);
 
-	free(snd_defeat);
+	KB_free_sound(sys, snd_defeat);
 }
 
 /* Combat-helping macros */
@@ -6787,9 +6787,9 @@ void adventure_loop(KBgame *game) {
 
 	}
 #undef KEY_ACT
-	free(snd_walk);
-	free(snd_bump);
-	free(snd_teleport);
+	KB_free_sound(sys, snd_walk);
+	KB_free_sound(sys, snd_bump);
+	KB_free_sound(sys, snd_teleport);
 }
 
 int run_game(KBconfig *conf) {

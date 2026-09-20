@@ -102,6 +102,8 @@ extern int (*KB_flip_hint)(int restore);
 extern void KB_setcaption(KBenv *env, const char *title);
 
 extern void KB_play(KBenv *env, KBsound *snd);
+/* Stop it if it is playing, then free the KBsound wrapper (never touch it after) */
+extern void KB_free_sound(KBenv *env, KBsound *snd);
 
 extern void KB_print(KBenv *env, const char *str);
 extern void KB_printf(KBenv *env, const char *fmt, ...);
