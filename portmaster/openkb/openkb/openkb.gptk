@@ -16,8 +16,10 @@ down = down
 left = left
 right = right
 
-a = enter
-b = esc
+# East button confirms, south button backs out. Batocera-based CFWs
+# (KNULLI) map the east button to SDL "b" and the south one to "a".
+b = enter
+a = esc
 x = o
 y = v
 

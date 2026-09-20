@@ -15,8 +15,8 @@ Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-
 | D-pad         | Move the hero / move the cursor in menus      |
 | L1 + D-pad    | Diagonal moves (d-pad turned 45° left)        |
 | R1 + D-pad    | Diagonal moves (d-pad turned 45° right)       |
-| A / Start     | Confirm, continue (Enter)                     |
-| B / Select    | Back, close (Esc)                             |
+| East button (A on Anbernic) / Start | Confirm, continue (Enter) |
+| South button (B on Anbernic) / Select | Back, close (Esc)   |
 | X             | Options menu with every command               |
 | Y             | View character                                |
 | L2            | View army                                     |
