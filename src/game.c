@@ -6362,6 +6362,7 @@ KBgamestate quit_question = {
 	{
 		{	_NON, 0xFF, 0, KFLAG_ANYKEY },
 		{	_NON, SDLK_q, KMOD_CTRL, KFLAG_TRAPSIGNAL },
+		{	_NON, SDLK_RETURN, 0, 0 },	/* Enter (gamepad confirm) also quits */
 		0
 	},
 	0
@@ -6382,7 +6383,10 @@ int ask_quit_game(KBgame *game) {
 	KB_iloc(text->x, text->y);
 	KB_iprint("\n\n\n");
 	KB_ilh(fs->h + fs->h / 8);
-	KB_iprint("Press Control-Q to Quit or\nany other key to continue.");
+	if (sys->conf->gamepad)
+		KB_iprint("Confirm button: Quit\nBack button: continue.");
+	else
+		KB_iprint("Enter or Control-Q to Quit,\nany other key to continue.");
 
 //	KB_BottomBox(NULL, "\nYour game has been saved.\n\nPress Control-Q to Quit or\nany other key to continue.", 0);
 	KB_flip(sys);
@@ -6390,6 +6394,7 @@ int ask_quit_game(KBgame *game) {
 	int done = 0;
 	while (!done) {
 		int key = KB_event(&quit_question);
+		if (key == 3) key = 2;	/* Enter counts as Quit */
 		if (key) done = key;
 	}
 
