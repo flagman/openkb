@@ -113,6 +113,10 @@ int read_file_config(struct KBconfig *conf, const char *path) {
 		if (buf[0] == '[') continue;
 	
 		if (sscanf(buf, "%s = %[^\r\n;]", buf1, buf2) == 2) {
+			if (!KB_strcasecmp(buf1, "stretch")) {
+				conf->stretch = atoi(buf2);
+				conf->set[C_stretch] = 1;
+			}
 			if (!KB_strcasecmp(buf1, "fullscreen")) {
 				conf->fullscreen = atoi(buf2);
 				conf->set[C_fullscreen] = 1;
@@ -292,6 +296,12 @@ int read_cmd_config(struct KBconfig *conf, int argc, char *args[]) {
 				continue;
 			}
 
+			if (!KB_strcasecmp(args[i], "--stretch")) {
+				conf->stretch = 1;
+				conf->set[C_stretch] = 1;
+				continue;
+			}
+
 			if (!KB_strcasecmp(args[i], "--rootdir") && i + 1 < argc) {
 				KB_strcpy(conf->install_dir, args[i + 1]);
 				conf->set[C_install_dir] = 1;
@@ -360,6 +370,8 @@ void wipe_config(struct KBconfig *conf) {
 	conf->set[C_sound] = 0;
 	conf->gamepad = 0;
 	conf->set[C_gamepad] = 0;
+	conf->stretch = 0;
+	conf->set[C_stretch] = 0;
 
 	conf->filter = 0;
 	conf->set[C_filter] = 0;
@@ -436,6 +448,7 @@ void report_config(struct KBconfig *conf) {
 
 	KB_debuglog(0, "Enable Sound:\t %s\n", conf->sound ? "Yes" : "No");
 	KB_debuglog(0, "Gamepad labels:\t %s\n", conf->gamepad ? "Yes" : "No");
+	KB_debuglog(0, "Stretch to 4:3:\t %s\n", conf->stretch ? "Yes" : "No");
 	KB_debuglog(0, "Fullscreen:\t %s\n", conf->fullscreen ? "Yes" : "No");
 	KB_debuglog(0, "Zoom Filter:\t %s\n", (conf->filter == 1 ? "Normal2x" : conf->filter ? "Scale2x" : "None" ));
 	KB_debuglog(0, "Auto-discover modules:\t %s\n", conf->autodiscover ? "Yes" : "No");
@@ -509,6 +522,7 @@ void apply_config(struct KBconfig* dst, struct KBconfig* src) {
 	
 	if (src->set[C_sound]) dst->sound = src->sound;
 	if (src->set[C_gamepad]) dst->gamepad = src->gamepad;
+	if (src->set[C_stretch]) dst->stretch = src->stretch;
 	
 	if (src->set[C_autodiscover]) dst->autodiscover = src->autodiscover;
 	if (src->set[C_fallback]) dst->fallback = src->fallback;

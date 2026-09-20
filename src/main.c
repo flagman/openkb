@@ -53,7 +53,28 @@ void dump_version(void) {
 #endif
 }
 
+#ifdef __GLIBC__
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
+static void crash_handler(int sig) {
+	void *frames[32];
+	int n = backtrace(frames, 32);
+	fprintf(stderr, "\nFatal signal %d, backtrace:\n", sig);
+	backtrace_symbols_fd(frames, n, STDERR_FILENO);
+	signal(sig, SIG_DFL);
+	raise(sig);
+}
+#endif
+
 int main(int argc, char* argv[]) {
+	/* Line-buffer stdout so logs survive a crash when redirected to a file */
+	setvbuf(stdout, NULL, _IOLBF, 0);
+#ifdef __GLIBC__
+	signal(SIGSEGV, crash_handler);
+	signal(SIGBUS, crash_handler);
+	signal(SIGABRT, crash_handler);
+#endif
 	KB_logto_STD();
 
 	int playing = 1;	/* Play 1 game of KB */

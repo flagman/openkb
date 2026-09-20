@@ -32,6 +32,8 @@ typedef struct KBenv {
 	SDL_Window *window;
 	SDL_Renderer *renderer;
 	SDL_Texture *texture;
+	int logical_w;	/* renderer logical size; mouse events arrive in it */
+	int logical_h;
 
 	SDL_Surface *screen;
 	SDL_Surface *font;

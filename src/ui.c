@@ -629,10 +629,10 @@ int KB_event(KBgamestate *state) {
 
 	/* Mouse moved */
 	if (mouse_x != -1 || mouse_y != -1) {
-		int zoom = 1;
 		SDL_Rect *r;
-		mouse_x /= zoom;
-		mouse_y /= zoom;
+		/* logical size may be taller than the screen surface (stretch mode) */
+		mouse_x = mouse_x * sys->screen->w / sys->logical_w;
+		mouse_y = mouse_y * sys->screen->h / sys->logical_h;
 		for (i = 0; i < state->max_spots; i++) {
 			r = &state->spots[i].coords;
 			if (mouse_x >= r->x && mouse_x < (r->x+r->w)

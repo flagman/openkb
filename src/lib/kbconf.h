@@ -66,6 +66,7 @@ typedef void*	(*KBresolve_cb)(KBmodule *mod, int id, int sub_id);
 #define C_fallback     8
 #define C_sound        9
 #define C_gamepad      11
+#define C_stretch      12
 
 typedef struct KBconfig {
 
@@ -82,6 +83,7 @@ typedef struct KBconfig {
 	int fallback;
 	int sound;
 	int gamepad;	/* show gamepad buttons instead of key names */
+	int stretch;	/* stretch the 16:10 picture to 4:3 like a DOS monitor did */
 
 	int set[16];//what is SET
 

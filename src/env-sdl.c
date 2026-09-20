@@ -108,9 +108,12 @@ KBenv *KB_startENV(KBconfig *conf) {
 		return NULL;
 	}
 
-	/* Keep 16:10 aspect, letterbox the rest; mouse events arrive in logical coords */
+	/* Mouse events arrive in logical coords. 16:10 letterboxed by default;
+	 * with 'stretch' the picture fills 4:3 like a DOS monitor did. */
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-	SDL_RenderSetLogicalSize(nsys->renderer, width, height);
+	nsys->logical_w = width;
+	nsys->logical_h = conf->stretch ? height * 6 / 5 : height;
+	SDL_RenderSetLogicalSize(nsys->renderer, nsys->logical_w, nsys->logical_h);
 
 	/* All drawing goes into this software surface, KB_flip() pushes it out */
 	nsys->screen = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_ARGB8888);
@@ -231,7 +234,10 @@ void KB_flip(KBenv *env) {
 	if (overlay) invert_rect(env->screen, &ov);
 	if (hint) KB_flip_hint(1);
 	SDL_RenderClear(env->renderer);
-	SDL_RenderCopy(env->renderer, env->texture, NULL, NULL);
+	{
+		SDL_Rect dst = { 0, 0, env->logical_w, env->logical_h };
+		SDL_RenderCopy(env->renderer, env->texture, NULL, &dst);
+	}
 	SDL_RenderPresent(env->renderer);
 }
 
