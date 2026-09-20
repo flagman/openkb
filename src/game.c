@@ -6162,7 +6162,7 @@ int combat_loop(KBgame *game, KBcombat *combat) {
 	while (!done) {
 		key = KB_event(&combat_state);
 
-		if (key == 0xFF) done = 2;
+		if (key == 0xFF) key = 0;	/* Escape does nothing here; leave via Give Up */
 
 		if (key == KEY_ACT(VIEW_OPTIONS) || key == KEY_ACT(VIEW_CONTROLS)) {
 			int redraw_under = 0;
@@ -6467,7 +6467,7 @@ void adventure_loop(KBgame *game) {
 
 		key = KB_event(&adventure_state);
 
-		if (key == 0xFF) done = 1;
+		if (key == 0xFF) key = 0;	/* Escape does nothing here; leave via Quit and Save */
 
 		if (key == KEY_ACT(VIEW_OPTIONS) || key == KEY_ACT(VIEW_CONTROLS)) {
 			int redraw_under = 0;
