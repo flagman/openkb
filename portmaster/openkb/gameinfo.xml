@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gameList>
+  <game>
+    <path>./OpenKB.sh</path>
+    <name>OpenKB</name>
+    <desc>Open source reimplementation of King's Bounty (1990), the turn-based fantasy strategy that inspired Heroes of Might and Magic. Ships with a free art set; drop in the DOS game files for the original graphics.</desc>
+    <releasedate>20230305T000000</releasedate>
+    <developer>Vitaly Driedfruit</developer>
+    <publisher>openkb project</publisher>
+    <genre>strategy/rpg</genre>
+    <image>./openkb/screenshot.png</image>
+  </game>
+</gameList>

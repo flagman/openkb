@@ -1,0 +1,14 @@
+       Name: Maurice the Griefer
+       Alias: None
+       Reward: 5,000 gold
+       Last Seen: %s
+          Castle: %s
+Distinguishing features:
+  A sick, balding and beared joke
+  of a man, wearing rags. Has
+  more wit than appears.
+Crimes: Maurice is wanted for
+  various romance scams as well
+  as for treason. He conned the
+  King's Guard out of their
+  royal commission.

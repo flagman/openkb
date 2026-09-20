@@ -1,0 +1,51 @@
+[config]
+deadzone_triggers = 3000
+deadzone_mode = axial
+deadzone = 8000
+deadzone_scale = 8
+deadzone_delay = 16
+mouse_scale = 6114
+mouse_delay = 16
+
+[controls]
+overlay = clear
+
+# D-pad moves the hero and the menu cursor
+up = up
+down = down
+left = left
+right = right
+
+a = enter
+b = esc
+x = o
+y = v
+
+# Hold L1/R1 to turn the d-pad 45 degrees for diagonal moves
+l1 = hold_state diag_ccw
+r1 = hold_state diag_cw
+
+l2 = a
+r2 = u
+
+start = enter
+select = esc
+
+left_analog = arrow_keys
+right_analog = mouse_movement
+l3 = mouse_left
+r3 = mouse_left
+
+[controls:diag_ccw]
+overlay = parent
+up = home
+right = page_up
+down = page_down
+left = end
+
+[controls:diag_cw]
+overlay = parent
+up = page_up
+right = page_down
+down = end
+left = home

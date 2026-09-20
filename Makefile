@@ -20,11 +20,11 @@ SDL_CFLAGS := $(shell $(SDL2_CONFIG) --cflags)
 SDL_LIBS   := $(shell $(SDL2_CONFIG) --libs)
 
 CFLAGS  ?= -O2 -g
-CFLAGS  += -Wall -Wno-unused $(SDL_CFLAGS)
+ALL_CFLAGS = $(CFLAGS) -Wall -Wno-unused $(SDL_CFLAGS)
 LDLIBS  += $(SDL_LIBS) -lm
 
 ifneq ($(DATADIR),/usr/local/share)
-CFLAGS += -DPKGDATADIR=\"$(DATADIR)\"
+ALL_CFLAGS += -DPKGDATADIR=\"$(DATADIR)\"
 endif
 
 LIB_SOURCES = \
@@ -65,11 +65,11 @@ $(GAME2_BINARY): $(GAME2_OBJECTS) $(VEND_OBJECTS) $(LIB_BINARY)
 	$(CC) $(LDFLAGS) $(GAME2_OBJECTS) $(VEND_OBJECTS) $(LIB_BINARY) $(LDLIBS) -lSDL2_net -o $@
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(ALL_CFLAGS) $< -o $@
 
 # lodepng is third-party and noisy under -Wall; keep it quiet
 vendor/lodepng.o: vendor/lodepng.c
-	$(CC) -c $(CFLAGS) -w $< -o $@
+	$(CC) -c $(ALL_CFLAGS) -w $< -o $@
 
 %.6: %.man
 	nroff -man $< > $@

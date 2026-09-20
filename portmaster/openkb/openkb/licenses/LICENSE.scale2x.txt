@@ -1,0 +1,4 @@
+scale2x.c is the SDL contrib implementation of the AdvanceMAME Scale2x
+algorithm by Andrea Mazzoleni (https://github.com/amadvance/scale2x,
+contrib/sdl/scale2x.c), distributed under the GNU General Public License
+version 2 or later. The full GPL text is in LICENSE.openkb.txt (GPLv3).

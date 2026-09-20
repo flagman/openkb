@@ -1,0 +1,4 @@
+inprint.c comes from SDL_inprint by Vitaly Driedfruit
+(https://github.com/driedfruit/SDL_inprint), the author of openkb, and is
+distributed as part of openkb under the GNU General Public License
+version 3 or later (see LICENSE.openkb.txt).

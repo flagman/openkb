@@ -1,0 +1,34 @@
+{
+  "version": 4,
+  "name": "openkb.zip",
+  "items": [
+    "OpenKB.sh",
+    "openkb"
+  ],
+  "items_opt": [],
+  "attr": {
+    "title": "OpenKB",
+    "porter": [
+      "flagman"
+    ],
+    "desc": "Open source reimplementation of King's Bounty (1990), the turn-based fantasy strategy that inspired Heroes of Might and Magic. Ships with a free art set; drop in the DOS game files for the original graphics.",
+    "desc_md": "**OpenKB** is an open source reimplementation of *King's Bounty* (New World Computing, 1990), the turn-based fantasy strategy game that later grew into Heroes of Might and Magic. Explore four continents, recruit an army, hunt down villains and recover the Sceptre of Order before your days run out.\n\nThe port ships with the game's free art set (CC-BY-SA 4.0). Owners of the DOS original can drop `416.CC`, `256.CC` and `KB.EXE` into `openkb/data/dos/` to play with the original graphics.",
+    "inst": "Ready to run with the free art set. Optional: copy 416.CC, 256.CC and KB.EXE from the DOS version of King's Bounty into openkb/data/dos/ and pick 'DOS (VGA)' in the module menu.",
+    "inst_md": "Ready to run with the free art set.\n\nOptional: copy `416.CC`, `256.CC` and `KB.EXE` from the DOS version of King's Bounty into `openkb/data/dos/` and pick **DOS (VGA)** in the module menu at start.",
+    "genres": [
+      "strategy",
+      "rpg"
+    ],
+    "image": null,
+    "rtr": true,
+    "exp": true,
+    "runtime": [],
+    "store": [],
+    "availability": "full",
+    "reqs": [],
+    "arch": [
+      "aarch64"
+    ],
+    "min_glibc": ""
+  }
+}

@@ -1,0 +1,14 @@
+       Name: Ragnar Lodbrok
+       Alias: The Conquerer
+       Reward: 12,000 gold
+       Last Seen: %s
+          Castle: %s
+Distinguishing features:
+  Long unhinged beard, helmet
+  with sharp horns, wields a large
+  battleaxe.
+Crimes: Coming from distant lands
+  with his band of bandits, this
+  warrior took control of several
+  castles that were loyal to the
+  crown.

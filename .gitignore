@@ -1,6 +1,6 @@
 openkb.ini
-openkb
-netkb
+/openkb
+/netkb
 *.*~
 *.o
 *.a
@@ -22,3 +22,4 @@ stdout.txt
 
 
 src/config.h.in
+build-aarch64/
