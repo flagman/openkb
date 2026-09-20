@@ -36,6 +36,7 @@ struct wavFile {
 };
 
 extern struct wavFile* wavFile_load_FILE(KB_File *f, SDL_AudioSpec *spec);
+extern int wavFile_read_FILE(struct wavFile *wav, KB_File *f, SDL_AudioSpec *wav_obtained);
 extern int wavFile_play(struct wavFile *wav, Uint8 *stream, int len, int freq);
 extern int wavFile_reset(struct wavFile *wav, Uint16 format);
 
