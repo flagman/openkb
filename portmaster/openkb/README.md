@@ -16,7 +16,8 @@ Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-
 | L1 + D-pad    | Diagonal moves (d-pad turned 45° left)        |
 | R1 + D-pad    | Diagonal moves (d-pad turned 45° right)       |
 | East button (A on Anbernic) / Start | Confirm, continue (Enter) |
-| South button (B on Anbernic) / Select | Back, close (Esc)   |
+| South button (B on Anbernic) | Back, close (Esc)   |
+| Select + Start | Quit the port (use Options > Quit and Save first to keep progress) |
 | X             | Options menu with every command               |
 | Y             | View character                                |
 | L2            | View army                                     |

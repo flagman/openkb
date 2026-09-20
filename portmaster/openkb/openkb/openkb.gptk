@@ -31,7 +31,6 @@ l2 = a
 r2 = u
 
 start = enter
-select = esc
 
 left_analog = arrow_keys
 right_analog = mouse_movement

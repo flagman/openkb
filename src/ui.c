@@ -107,6 +107,8 @@ KBgamestate character_selection = {
 		{	_NON, SDLK_UP, 0, KFLAG_RETKEY	},
 		{	_NON, SDLK_DOWN, 0, KFLAG_RETKEY	},
 		{	_NON, SDLK_RETURN, 0, KFLAG_RETKEY	},
+		/* Window close -> 0xFE; plain Escape (0xFF) is ignored here */
+		{	_NON, 0xFFFF, 0, KFLAG_TRAPSIGNAL | KFLAG_RETKEY },
 		0,
 	},
 	0
@@ -128,6 +130,8 @@ KBgamestate module_selection = {
 		{	_AREA(0, 0, 0, 0), SDLK_9, 0, 0		},
 		{	_AREA(0, 0, 0, 0), SDLK_0, 0, 0		},
 		{	_AREA(0, 0, 0, 0), SDLK_MINUS, 0, 0	},
+		/* Window close -> 0xFE; plain Escape (0xFF) is ignored by the menu */
+		{	_NON, 0xFFFF, 0, KFLAG_TRAPSIGNAL | KFLAG_RETKEY },
 		0,
 	},
 	0

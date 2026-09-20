@@ -847,8 +847,8 @@ KBgame *select_game(KBconfig *conf) {
 			redraw = 1;
 		}
 
-		/* Escape */
-		if (key == 0xFF) done = 1;
+		/* Window closed; plain Escape is ignored so a gamepad can't quit by accident */
+		if (key == 0xFE) done = 1;
 	}
 
 	if (game) {
@@ -917,8 +917,11 @@ int select_module() {
 			redraw = 1;
 		}
 
-		if (key == 0xFF) { /* Sudden Escape */
+		if (key == 0xFE) { /* Window closed */
 			return -1;
+		}
+		if (key == 0xFF) { /* Escape: nothing to go back to, stay in the menu */
+			continue;
 		}
 		if (key == 1) { sel--; redraw = 1; }
 		if (key == 2) { sel++; redraw = 1; }
@@ -5557,6 +5560,7 @@ printf("Drawing item %d, which is item %d, %s\n", i, j, item_names[j]);
 			KB_flip(sys);
 		}
 
+		settings_selection.kbnav = 1;	/* Up/Down pick a row, Enter toggles it, Left/Right switch tabs */
 		key = KB_event(&settings_selection);
 
 		if (key == 0xFF) {
@@ -5630,6 +5634,7 @@ printf("Drawing item %d, which is item %d, %s\n", i, j, item_names[j]);
 
 	}
 
+	settings_selection.kbnav = 0;
 	KB_reset(&adventure_state);
 	reset_adventure_hotspots();
 	reset_adventure_menu_hotspots(); /* pop */
