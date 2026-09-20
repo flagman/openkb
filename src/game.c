@@ -5884,7 +5884,8 @@ void unit_try_shoot(KBcombat *war) {
 			return;
 		}
 
-		draw_damage(war, victim);
+		draw_combat(war);	/* refresh unit counts right away */
+	draw_damage(war, victim);
 
 		combat_log("%s shoot %s killing %d", troops[u->troop_id].name, troops[victim->troop_id].name, kills);
 
@@ -5907,6 +5908,7 @@ void unit_ranged_damage(KBcombat *war, int other_side, int other_id) {
 
 	victim = &war->units[other_side][other_id];
 
+	draw_combat(war);	/* refresh unit counts right away */
 	draw_damage(war, victim);
 
 	combat_log("%s shoot %s killing %d", troops[u->troop_id].name, troops[victim->troop_id].name, kills);
@@ -6473,6 +6475,21 @@ void adventure_loop(KBgame *game) {
 
 	reset_adventure_hotspots();
 	reset_adventure_menu_hotspots();
+
+#ifdef OPENKB_TEST
+	/* Test hooks (harness): teleport and a dump of foe positions */
+	if (getenv("OPENKB_TEST_TELEPORT")) {
+		int tx = 0, ty = 0;
+		sscanf(getenv("OPENKB_TEST_TELEPORT"), "%d,%d", &tx, &ty);
+		game->x = game->last_x = tx; game->y = game->last_y = ty;
+	}
+	if (getenv("OPENKB_TEST_DUMP")) {
+		int k;
+		KB_debuglog(0, "START %d,%d\n", game->x, game->y);
+		for (k = 0; k < MAX_FOES; k++)
+			KB_debuglog(0, "FOE %d: %d,%d\n", k, game->foe_coords[0][k][0], game->foe_coords[0][k][1]);
+	}
+#endif
 
 	while (!done) {
 
