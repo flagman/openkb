@@ -20,7 +20,9 @@ SDL_LIBS="$(sdl2-config --libs | sed 's/-Wl,-rpath,[^ ]*//; s/-Wl,--enable-new-d
 
 make -C "$ROOT" clean >/dev/null
 make -C "$ROOT" -j"$(nproc)" CC=gcc SDL_LIBS="$SDL_LIBS"
+cp "$ROOT/openkb" "$BUILD/openkb.aarch64.debug"   # unstripped, for addr2line on crash backtraces
 strip -o "$BUILD/openkb.aarch64" "$ROOT/openkb"
+gcc -shared -fPIC -O1 $(sdl2-config --cflags) "$ROOT/src/tools/harness/harness.c" -ldl -o "$BUILD/harness.so"
 make -C "$ROOT" clean >/dev/null
 
 echo "== result =="
