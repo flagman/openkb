@@ -206,7 +206,8 @@ KBgamestate alphabet_letter = {
 #undef _TIME
 #undef _AREA
 
-static char kbd_state[512] = { 0 };
+/* Indexed by SDL_Scancode (keycodes in SDL2 don't fit a small table) */
+static char kbd_state[SDL_NUM_SCANCODES] = { 0 };
 
 int KB_reset(KBgamestate *state) {
 
@@ -227,7 +228,7 @@ int KB_reset(KBgamestate *state) {
 	}
 
 	/* Unpush all keys */
-	for (i = 0; i < 512; i++) {
+	for (i = 0; i < SDL_NUM_SCANCODES; i++) {
 		kbd_state[i] = 0;
 	}
 
@@ -286,7 +287,7 @@ int KB_event(KBgamestate *state) {
 			sp->passed -= sp->passed;
 
 			/* For "timed keys", also ensure the key is being pressed */
-			if (sp->flag & KFLAG_TIMEKEY && !kbd_state[sp->hot_key]) continue;
+			if (sp->flag & KFLAG_TIMEKEY && !kbd_state[SDL_GetScancodeFromKey(sp->hot_key)]) continue;
 
 			eve = i + 1; /* !!! */
 			if (sp->flag & KFLAG_RETKEY) eve = sp->hot_key;
@@ -331,13 +332,16 @@ int KB_event(KBgamestate *state) {
 			}
 
 		if (event.type == SDL_KEYUP) {
-			SDL_keysym *kbd = &event.key.keysym;
-			kbd_state[kbd->sym] = 0;
+			SDL_Keysym *kbd = &event.key.keysym;
+			kbd_state[kbd->scancode] = 0;
 		}
 
+		/* SDL 1.2 had no key repeat unless asked; we do our own via KFLAG_TIMEKEY */
+		if (event.type == SDL_KEYDOWN && event.key.repeat) continue;
+
 		if (event.type == SDL_KEYDOWN) {
-			SDL_keysym *kbd = &event.key.keysym;
-			kbd_state[kbd->sym] = 1;
+			SDL_Keysym *kbd = &event.key.keysym;
+			kbd_state[kbd->scancode] = 1;
 			for (i = 0; i < state->max_spots; i++) {
 				KBhotspot *sp = &state->spots[i];
 				if ((sp->flag & KFLAG_ANYKEY) || 
@@ -345,7 +349,7 @@ int KB_event(KBgamestate *state) {
 					( !sp->hot_mod || (sp->hot_mod & kbd->mod) )))
 					{
 						if (sp->hot_key != kbd->sym && (
-							kbd->sym == SDLK_LSUPER || kbd->sym == SDLK_RSUPER ||
+							kbd->sym == SDLK_LGUI || kbd->sym == SDLK_RGUI ||
 							kbd->sym == SDLK_LSHIFT || kbd->sym == SDLK_RSHIFT ||
 							kbd->sym == SDLK_LCTRL || kbd->sym == SDLK_RCTRL ||
 							kbd->sym == SDLK_LALT || kbd->sym == SDLK_RALT ))

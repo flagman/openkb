@@ -395,7 +395,7 @@ void draw_console() {
 }
 
 
-int KB_chat(SDL_keysym *kbd) {
+int KB_chat(SDL_Keysym *kbd) {
 	SDL_Event event;
 	int eve = 0;
 	
@@ -451,7 +451,7 @@ int KB_event() {
 		if (event.type == SDL_USEREVENT) eve = event.user.code;
 
 		if (event.type == SDL_KEYDOWN) {
-			SDL_keysym *kbd = &event.key.keysym;
+			SDL_Keysym *kbd = &event.key.keysym;
 			{
 				eve = kbd->sym;
 				if (console.chatting == 1) eve = KB_chat(kbd);
@@ -641,7 +641,7 @@ inprint(screen, (youare_ready ? "You are READY" : "You are not ready! Press F1!"
 			dest.y += dest.h;
 		}
 
-		SDL_Flip(screen);		
+		KB_flip(sys);		
 
 		SDL_Delay(10);
 
@@ -1058,7 +1058,7 @@ int run_match(KBcombat *war) {
 			}
 		}
 
-		SDL_Flip(screen);
+		KB_flip(sys);
 
 		SDL_Delay(10);	
 	}

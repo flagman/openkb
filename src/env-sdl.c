@@ -26,10 +26,6 @@
 #include "../vendor/vendor.h"
 #include "env.h"
 
-#ifdef HAVE_LIBSDL_IMAGE
-#include <SDL_image.h>
-#endif
-
 /* Forward-declare audio callback */
 void KBenv_audio_callback(void *userdata, Uint8 *stream, int len);
 
@@ -46,6 +42,7 @@ KBconfig *conf = NULL;
 KBenv *KB_startENV(KBconfig *conf) {
 
 	Uint32 width, height, flags, iflags;
+	int win_w, win_h;
 
 	SDL_AudioSpec desired;
 
@@ -73,7 +70,7 @@ KBenv *KB_startENV(KBconfig *conf) {
 
 	width = 320;
 	height = 200;
-	flags = SDL_SWSURFACE;
+	flags = SDL_WINDOW_RESIZABLE;
 
 	nsys->pan = 0;
 	nsys->zoom = 1;
@@ -84,42 +81,58 @@ KBenv *KB_startENV(KBconfig *conf) {
 		nsys->zoom = 2;
 	}
 
+	/* Window is at least 2x the logical size so 320x200 isn't a postage stamp */
+	win_w = width;
+	win_h = height;
+	if (win_w < 640) { win_w *= 2; win_h *= 2; }
+
 	if (conf->fullscreen) {
-		flags |= SDL_FULLSCREEN;
-		if (height == 400) {
-			nsys->pan = 40;
-			height = 480;
-		}
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
-	nsys->screen = SDL_SetVideoMode( width, height, 32, flags );
-
-	if (nsys->screen == NULL) {
-		KB_errlog("Couldn't create output screen: %s\n", SDL_GetError());
+	nsys->window = SDL_CreateWindow("openkb " PACKAGE_VERSION,
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_w, win_h, flags);
+	if (nsys->window == NULL) {
+		KB_errlog("Couldn't create window: %s\n", SDL_GetError());
 		free(nsys);
 		return NULL;
 	}
 
-	SDL_WM_SetCaption("openkb " PACKAGE_VERSION, "openkb " PACKAGE_VERSION);
+	nsys->renderer = SDL_CreateRenderer(nsys->window, -1, SDL_RENDERER_PRESENTVSYNC);
+	if (nsys->renderer == NULL) nsys->renderer = SDL_CreateRenderer(nsys->window, -1, 0);
+	if (nsys->renderer == NULL) {
+		KB_errlog("Couldn't create renderer: %s\n", SDL_GetError());
+		SDL_DestroyWindow(nsys->window);
+		free(nsys);
+		return NULL;
+	}
+
+	/* Keep 16:10 aspect, letterbox the rest; mouse events arrive in logical coords */
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+	SDL_RenderSetLogicalSize(nsys->renderer, width, height);
+
+	/* All drawing goes into this software surface, KB_flip() pushes it out */
+	nsys->screen = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_ARGB8888);
+	nsys->texture = SDL_CreateTexture(nsys->renderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING, width, height);
+
+	if (nsys->screen == NULL || nsys->texture == NULL) {
+		KB_errlog("Couldn't create output screen: %s\n", SDL_GetError());
+		if (nsys->texture) SDL_DestroyTexture(nsys->texture);
+		if (nsys->screen) SDL_FreeSurface(nsys->screen);
+		SDL_DestroyRenderer(nsys->renderer);
+		SDL_DestroyWindow(nsys->window);
+		free(nsys);
+		return NULL;
+	}
 
 	/* Set window icon */
-	iconfile = KB_fastpath(conf->install_dir, "/", "icon_32x32"
-#ifdef HAVE_LIBSDL_IMAGE
-	".png"
-#else
-	".bmp"
-#endif
-	); 
-	nsys->icon = 
-#ifdef HAVE_LIBSDL_IMAGE
-	IMG_Load(iconfile);
-#else
-	SDL_LoadBMP(iconfile);
-#endif
+	iconfile = KB_fastpath(conf->install_dir, "/", "icon_32x32.png");
+	nsys->icon = KB_LoadPNG(iconfile);
 	if (!nsys->icon) {
 		KB_errlog("Couldn't open icon file: %s\n", iconfile);
 	} else {
-		SDL_WM_SetIcon(nsys->icon, NULL);
+		SDL_SetWindowIcon(nsys->window, nsys->icon);
 	}
 	free(iconfile);
 
@@ -176,13 +189,25 @@ void KB_stopENV(KBenv *env) {
 
 	SDL_FreeCachedSurfaces();
 
+	if (env->texture) SDL_DestroyTexture(env->texture);
+	if (env->screen) SDL_FreeSurface(env->screen);
+	if (env->renderer) SDL_DestroyRenderer(env->renderer);
+	if (env->window) SDL_DestroyWindow(env->window);
+
 	free(env);
 
 	SDL_Quit();
 }
 
 void KB_flip(KBenv *env) {
-	SDL_Flip(env->screen);
+	SDL_UpdateTexture(env->texture, NULL, env->screen->pixels, env->screen->pitch);
+	SDL_RenderClear(env->renderer);
+	SDL_RenderCopy(env->renderer, env->texture, NULL, NULL);
+	SDL_RenderPresent(env->renderer);
+}
+
+void KB_setcaption(KBenv *env, const char *title) {
+	SDL_SetWindowTitle(env->window, title);
 }
 
 
@@ -225,7 +250,7 @@ void KB_setcolor(KBenv *env, Uint32* colors) /* Colors must be in 0x00RRGGBB for
 		pal[i].g = (Uint8)((colors[i] & 0x0000FF00) >> 8);
 		pal[i].b = (Uint8)((colors[i] & 0x000000FF));
 	}
-	SDL_SetColors(env->font, pal, 0, 4);
+	KB_SetColors(env->font, pal, 0, 4);
 }
 
 void KB_print(KBenv *env, const char *str) { 
@@ -245,9 +270,12 @@ void KB_print(KBenv *env, const char *str) {
 			env->cursor_y++;
 			continue;
 		}
+		word dx, dy;
 		letter.x = col * letter.w;
 		letter.y = row * letter.h;
-		KB_getpos(env, &dest.x, &dest.y);
+		KB_getpos(env, &dx, &dy);
+		dest.x = dx;
+		dest.y = dy;
 		SDL_BlitSurface(env->font, &letter, env->screen, &dest);
 		env->cursor_x++;
 	}
@@ -274,10 +302,8 @@ void KB_vprintf(KBenv *env, const char *fmt, va_list argptr) {
  * Any SDL resource handler should have those or similar! :)
  * Warning: might not work for non-paletted surfaces, use with caution.
  */
-#define SDL_CloneSurfaceX(SURFACE, SIZE) SDL_CreateRGBSurface(SURFACE->flags, SURFACE->w * SIZE, SURFACE->h * SIZE, SURFACE->format->BitsPerPixel, \
-		SURFACE->format->Rmask, SURFACE->format->Gmask,	SURFACE->format->Bmask,	SURFACE->format->Amask)
-#define SDL_CloneSurfaceHW(SURFACE, H, W) SDL_CreateRGBSurface(SURFACE->flags, W, H, SURFACE->format->BitsPerPixel, \
-		SURFACE->format->Rmask, SURFACE->format->Gmask,	SURFACE->format->Bmask,	SURFACE->format->Amask)
+#define SDL_CloneSurfaceX(SURFACE, SIZE) SDL_CreateRGBSurfaceWithFormat(0, SURFACE->w * SIZE, SURFACE->h * SIZE, SURFACE->format->BitsPerPixel, SURFACE->format->format)
+#define SDL_CloneSurfaceHW(SURFACE, H, W) SDL_CreateRGBSurfaceWithFormat(0, W, H, SURFACE->format->BitsPerPixel, SURFACE->format->format)
 
 void SDL_SizeX(SDL_Surface *surface, SDL_Surface *new_surface, Uint8 size) {
 	SDL_Rect sr = { 0, 0, surface->w, surface->h };
@@ -439,8 +465,8 @@ SDL_Surface *SDL_LoadRESOURCE(int id, int sub_id, int flip) {
 			KB_stdlog("Warning: A %d-bpp image\n", surf->format->BitsPerPixel);
 		}
 
-		if (surf->flags & SDL_SRCCOLORKEY) { /* Use same colorkey */
-			SDL_SetColorKey(bigsurf, SDL_SRCCOLORKEY, 0xFF);
+		if (SDL_HasColorKey(surf)) { /* Use same colorkey */
+			SDL_SetColorKey(bigsurf, SDL_TRUE, 0xFF);
 		}
 
 		if (zoom > 1) { /* Zoom-copy */
@@ -734,6 +760,7 @@ void KBenv_audio_callback(void *userdata, Uint8 *stream, int len) {
 			KB_errlog("Audio buffer underrun: need %d more bytes of samples\n", len);
 			break;
 		}
+
 		
 		len -= n;
 	}

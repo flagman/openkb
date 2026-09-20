@@ -319,6 +319,26 @@ extern char* DOS_location_names[];
 #include "kbdir.h" // for KB_DIR
 #include "kbconf.h" // for KBresolve_cb
 
+/* SDL 1.2 -> SDL2 helper: set palette entries from r/g/b (alpha forced opaque) */
+static inline void KB_SetColors(SDL_Surface *surf, const SDL_Color *colors, int first, int n)
+{
+	SDL_Color tmp[256];
+	int i;
+	if (!surf || !surf->format->palette) return;
+	if (n > 256) n = 256;
+	for (i = 0; i < n; i++) {
+		tmp[i].r = colors[i].r;
+		tmp[i].g = colors[i].g;
+		tmp[i].b = colors[i].b;
+		tmp[i].a = 255;
+	}
+	SDL_SetPaletteColors(surf->format->palette, tmp, first, n);
+}
+
+/* PNG loading (lodepng-based, keeps palettes) */
+extern SDL_Surface* KB_LoadPNG_RW(SDL_RWops *rw);
+extern SDL_Surface* KB_LoadPNG(const char *filename);
+
 /* Provide usefull functions to modules */
 extern SDL_Surface* SDL_CreatePALSurface(Uint32 width, Uint32 height);
 extern void SDL_ClonePalette(SDL_Surface *dst, SDL_Surface *src);

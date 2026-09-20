@@ -25,11 +25,6 @@
 #include "kbsound.h"/* KBsound */
 
 #include <SDL.h>  	/* SDL data types */
-#ifdef HAVE_LIBSDL_IMAGE
-#include <SDL_image.h>	/* PNG support */
-#else
-#warning "SDL_Image is not used, PNG support disabled!"
-#endif
 
 #include "dos-snd.h"
 #include "free-snd.h"
@@ -889,11 +884,7 @@ void* GNU_Resolve(KBmodule *mod, int id, int sub_id) {
 	SDL_Rect image_cutout_rect;
 	int image_cutout = 0;
 	int is_transparent = 1;
-#ifdef HAVE_LIBSDL_IMAGE
 #define _EXTN ".png"
-#else
-#define _EXTN ".bmp"
-#endif
 	switch (id) {
 		case GR_LOGO:
 		{
@@ -1539,20 +1530,14 @@ void* GNU_Resolve(KBmodule *mod, int id, int sub_id) {
 
 		KB_debuglog(0, "? FREE IMG FILE: %s\n", realname);
 
-#ifdef HAVE_LIBSDL_IMAGE
 		SDL_Surface *surf = NULL;
 		if (!strcasecmp(image_suffix, ".bmp")) {
-			/* HACK -- even if we have SDL_Image lib, it's better to load bmps via SDL_LoadBMP */
-			/* At least on MacOS, it otherwise loads a 32-bit image, even when we need 1-bit */
 			surf = SDL_LoadBMP(realname);
+			if (surf == NULL) KB_debuglog(0, "> FAILED TO OPEN, %s\n", SDL_GetError());
 		} else {
-			surf = IMG_Load(realname);
+			surf = KB_LoadPNG(realname);
+			if (surf == NULL) KB_debuglog(0, "> FAILED TO OPEN %s\n", realname);
 		}
-		if (surf == NULL) KB_debuglog(0, "> FAILED TO OPEN, %s\n", IMG_GetError());
-#else
-		SDL_Surface *surf = SDL_LoadBMP(realname);
-		if (surf == NULL) KB_debuglog(0, "> FAILED TO OPEN, %s\n", SDL_GetError());
-#endif
 		if (image_cutout) {
 			SDL_Surface *piece = SDL_CreatePALSurface(image_cutout_rect.w, image_cutout_rect.h);
 			SDL_ClonePalette(piece, surf);
@@ -1562,7 +1547,7 @@ void* GNU_Resolve(KBmodule *mod, int id, int sub_id) {
 		}
 
 		if (surf && is_transparent)
-			SDL_SetColorKey(surf, SDL_SRCCOLORKEY, 0xFF);
+			SDL_SetColorKey(surf, SDL_TRUE, 0xFF);
 
 		free(realname);
 		return surf;

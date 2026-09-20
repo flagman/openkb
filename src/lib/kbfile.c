@@ -320,19 +320,30 @@ int KB_fcloseBUF(KB_File *stream)
 
 #ifdef HAVE_LIBSDL
 #include <SDL.h>
-/* SDL_RWops interface */
-int KBRW_seek( SDL_RWops *ctx, int offset, int whence ) {
-	int r = KB_fseek( (KB_File*)ctx->hidden.unknown.data1, offset, whence );
+/* SDL_RWops interface (SDL2 signatures) */
+static Sint64 KBRW_size( SDL_RWops *ctx ) {
+	KB_File *f = (KB_File*)ctx->hidden.unknown.data1;
+	long int cur = KB_ftell(f), end;
+	if (cur < 0) return -1;
+	if (KB_fseek(f, 0, SEEK_END)) return -1;
+	end = KB_ftell(f);
+	KB_fseek(f, cur, SEEK_SET);
+	return end;
+}
+
+static Sint64 KBRW_seek( SDL_RWops *ctx, Sint64 offset, int whence ) {
+	int r = KB_fseek( (KB_File*)ctx->hidden.unknown.data1, (long int)offset, whence );
 	if (!r) return KB_ftell( (KB_File*)ctx->hidden.unknown.data1 ) ;
 	return -1;
 }
 
-int KBRW_read( SDL_RWops *ctx, void *ptr, int size, int maxnum) {
-	return KB_fread( ptr, size, maxnum, (KB_File*)ctx->hidden.unknown.data1 );
+static size_t KBRW_read( SDL_RWops *ctx, void *ptr, size_t size, size_t maxnum) {
+	int r = KB_fread( ptr, (int)size, (int)maxnum, (KB_File*)ctx->hidden.unknown.data1 );
+	return r < 0 ? 0 : (size_t)r;
 }
 
-int KBRW_write( SDL_RWops *ctx, const void *ptr, int size, int num) {
-	return -1;
+static size_t KBRW_write( SDL_RWops *ctx, const void *ptr, size_t size, size_t num) {
+	return 0;
 }
 
 int KBRW_close( SDL_RWops *ctx) {
@@ -350,6 +361,7 @@ SDL_RWops* KBRW_open( KB_File *f ) {
 	
 	if (rw == NULL) return NULL;
 
+	rw->size = &KBRW_size;
 	rw->seek = &KBRW_seek;
 	rw->read = &KBRW_read;
 	rw->write = &KBRW_write;

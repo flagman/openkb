@@ -6,8 +6,6 @@ netkb
 *.a
 *.exe
 *.dll
-*.tar.gz
-*.tgz
 *.patch
 *.diff
 src/tools/kbcc
@@ -16,20 +14,11 @@ src/tools/kbrowse
 src/tools/kbmaped
 src/tools/unexepack
 src/tools/unexecomp
-vendor/*/
 *.vo
 *.6
-autoscan*.log
-configure
 stderr.txt
 stdout.txt
-config.*
-configure.scan
-missing
-autom4te.cache/
-mkinstalldirs
-install-sh
-ltmain.sh
 .DS_Store
 
-Makefile
+
+src/config.h.in
