@@ -3268,7 +3268,9 @@ void take_chest(KBgame *game) {
 
 			} else {
 
+				/* Permanent, like a promotion; the weekly reset only drops spell bonuses */
 				game->leadership += leadership;
+				game->base_leadership += leadership;
 
 			}
 
