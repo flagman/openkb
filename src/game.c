@@ -848,22 +848,22 @@ int select_module() {
 	}
 
 	/* Size */
-	menu.w = l * 8 + 16;
-	menu.h = conf->num_modules * 8 + 16;
+	menu.w = l * sys->font_size.w + sys->font_size.w * 2;
+	menu.h = conf->num_modules * sys->font_size.h + sys->font_size.h * 2;
 
 	/* To the center of the screen */
 	menu.x = (screen->w - menu.w) / 2;
 	menu.y = (screen->h - menu.h) / 2;
 
 	/* A little bit up */
-	menu.y -= 8;
+	menu.y -= sys->font_size.h;
 
 	/* Update mouse hot-spots */
 	for (i = 0; i < conf->num_modules; i++) {
-		module_selection.spots[i + 3].coords.x = menu.x + 8;
-		module_selection.spots[i + 3].coords.y = menu.y + 8 + i * 8;
-		module_selection.spots[i + 3].coords.w = menu.w - 8;
-		module_selection.spots[i + 3].coords.h = 8;
+		module_selection.spots[i + 3].coords.x = menu.x + sys->font_size.w;
+		module_selection.spots[i + 3].coords.y = menu.y + sys->font_size.h + i * sys->font_size.h;
+		module_selection.spots[i + 3].coords.w = menu.w - sys->font_size.w;
+		module_selection.spots[i + 3].coords.h = sys->font_size.h;
 	}
 
 	/* Hotspots 0-2 are keys, 3+ are the menu rows; keep hover in sync with
@@ -915,7 +915,7 @@ int select_module() {
 
 			for (i = 0; i < conf->num_modules; i++) {
 				KB_icolor(i == sel ? colors : invcolors); /* Note: because inline font is color-inverted */
-				KB_iloc(menu.x + 8, 8 * i + menu.y + 8);
+				KB_iloc(menu.x + sys->font_size.w, sys->font_size.h * i + menu.y + sys->font_size.h);
 				KB_iprint(conf->modules[i].name);
 			}
 

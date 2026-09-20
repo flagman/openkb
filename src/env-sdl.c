@@ -26,8 +26,9 @@
 #include "../vendor/vendor.h"
 #include "env.h"
 
-/* Forward-declare audio callback */
+/* Forward-declare audio callback and the surface scaler defined below */
 void KBenv_audio_callback(void *userdata, Uint8 *stream, int len);
+SDL_Surface* SDL_SizeX_Surface(SDL_Surface* surface, Uint8 size);
 
 /*
  * Default config.
@@ -172,7 +173,15 @@ KBenv *KB_startENV(KBconfig *conf) {
 	prepare_inline_font();	// <-- inline font
 	nsys->font_size.w = 8;
 	nsys->font_size.h = 8;
-	KB_setfont(nsys, get_inline_font());
+	{
+		/* Scale the built-in 8x8 font with the screen, like game fonts are */
+		SDL_Surface *ifont = get_inline_font();
+		if (nsys->zoom > 1) {
+			SDL_Surface *big = SDL_SizeX_Surface(ifont, nsys->zoom);
+			if (big) { SDL_ClonePalette(big, ifont); ifont = big; }
+		}
+		KB_setfont(nsys, ifont);
+	}
 
 
 	//TODO: default font color
