@@ -94,6 +94,9 @@ extern void KB_stopENV(KBenv *env);
 extern void KB_flip(KBenv *env);
 /* Optional overlay: if set and returns nonzero, that rect is shown inverted */
 extern int (*KB_flip_overlay)(SDL_Rect *rect);
+/* Optional hint: called with 0 to draw onto the screen before presenting
+ * (returns nonzero if it drew), then with 1 to restore what it covered */
+extern int (*KB_flip_hint)(int restore);
 extern void KB_setcaption(KBenv *env, const char *title);
 
 extern void KB_play(KBenv *env, KBsound *snd);

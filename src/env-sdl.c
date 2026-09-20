@@ -209,6 +209,7 @@ void KB_stopENV(KBenv *env) {
 }
 
 int (*KB_flip_overlay)(SDL_Rect *rect) = NULL;
+int (*KB_flip_hint)(int restore) = NULL;
 
 static void invert_rect(SDL_Surface *s, SDL_Rect *r) {
 	int x, y, x0 = r->x, y0 = r->y, x1 = r->x + r->w, y1 = r->y + r->h;
@@ -224,9 +225,11 @@ static void invert_rect(SDL_Surface *s, SDL_Rect *r) {
 void KB_flip(KBenv *env) {
 	SDL_Rect ov;
 	int overlay = KB_flip_overlay && KB_flip_overlay(&ov);
+	int hint = KB_flip_hint && KB_flip_hint(0);
 	if (overlay) invert_rect(env->screen, &ov);
 	SDL_UpdateTexture(env->texture, NULL, env->screen->pixels, env->screen->pitch);
 	if (overlay) invert_rect(env->screen, &ov);
+	if (hint) KB_flip_hint(1);
 	SDL_RenderClear(env->renderer);
 	SDL_RenderCopy(env->renderer, env->texture, NULL, NULL);
 	SDL_RenderPresent(env->renderer);

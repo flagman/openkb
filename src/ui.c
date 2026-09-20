@@ -299,6 +299,52 @@ static int nav_hover_is_row(KBgamestate *st) {
 	return st->hover >= 0 && st->hover < st->max_spots && nav_is_row(st, st->hover);
 }
 
+/*
+ * Diagonal moves for a gamepad: while Shift (L1 in the port) is held,
+ * arrows become Home/PgUp/PgDn/End and a hint box shows the layout.
+ */
+static SDL_Keycode diag_of(SDL_Keycode k) {
+	if (k == SDLK_UP) return SDLK_HOME;
+	if (k == SDLK_RIGHT) return SDLK_PAGEUP;
+	if (k == SDLK_DOWN) return SDLK_PAGEDOWN;
+	if (k == SDLK_LEFT) return SDLK_END;
+	return 0;
+}
+
+static SDL_Surface *hint_backup = NULL;
+static SDL_Rect hint_rect;
+
+static int KB_hint_draw(int restore) {
+	SDL_Surface *screen = sys->screen;
+	SDL_Rect *fs = &sys->font_size;
+	Uint32 colors[] = { 0x0000AA, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF }; /* [0] background, [1] text */
+
+	if (restore) {
+		if (hint_backup) {
+			SDL_BlitSurface(hint_backup, NULL, screen, &hint_rect);
+			SDL_FreeSurface(hint_backup);
+			hint_backup = NULL;
+		}
+		return 0;
+	}
+	if (!sys->conf->gamepad || !(SDL_GetModState() & KMOD_SHIFT)) return 0;
+
+	hint_rect.w = fs->w * 32;
+	hint_rect.h = fs->h * 4;
+	hint_rect.x = fs->w;
+	hint_rect.y = fs->h * 2;
+	hint_backup = SDL_CreateRGBSurfaceWithFormat(0, hint_rect.w, hint_rect.h, 32, screen->format->format);
+	if (!hint_backup) return 0;
+	SDL_BlitSurface(screen, &hint_rect, hint_backup, NULL);
+
+	SDL_TextRect(screen, &hint_rect, colors[1], colors[0], 1);
+	KB_icolor(colors);
+	KB_iloc(hint_rect.x + fs->w, hint_rect.y + fs->h);
+	KB_iprint("L1+\x18 Up-Left    L1+\x1B Up-Right\n"
+	          "L1+\x19 Down-Right L1+\x1A Down-Left");
+	return 1;
+}
+
 int KB_nav_rect(SDL_Rect *out) {
 	KBgamestate *st = nav_state;
 	if (!st || !nav_active(st) || !nav_hover_is_row(st)) return 0;
@@ -334,6 +380,7 @@ int KB_event(KBgamestate *state) {
 	if (nav_state != state) {
 		nav_state = state;
 		KB_flip_overlay = KB_nav_rect;
+		KB_flip_hint = KB_hint_draw;
 		KB_flip(sys);
 	}
 	/* Point the cursor at the first row as soon as the state has rows
@@ -410,6 +457,18 @@ int KB_event(KBgamestate *state) {
 
 		/* SDL 1.2 had no key repeat unless asked; we do our own via KFLAG_TIMEKEY */
 		if (event.type == SDL_KEYDOWN && event.key.repeat) continue;
+
+		/* Shift + arrow = diagonal (L1 on a gamepad); Shift itself repaints the hint */
+		if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+			SDL_Keycode k = event.key.keysym.sym;
+			SDL_Keycode d = diag_of(k);
+			if (k == SDLK_LSHIFT || k == SDLK_RSHIFT) KB_flip(sys);
+			if (d && event.type == SDL_KEYDOWN && (event.key.keysym.mod & KMOD_SHIFT)) {
+				event.key.keysym.sym = d;
+				event.key.keysym.scancode = SDL_GetScancodeFromKey(d);
+			}
+			if (d && event.type == SDL_KEYUP) kbd_state[SDL_GetScancodeFromKey(d)] = 0;
+		}
 
 		/* Menu navigation: arrows move between rows, Enter picks the row */
 		if (event.type == SDL_KEYDOWN && nav_active(state)) {
