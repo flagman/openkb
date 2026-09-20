@@ -3033,7 +3033,10 @@ int visit_dwelling(KBgame *game, byte rtype) {
 	}
 
 	/* Somehow, there's no dwelling here */
-	if (id == -1) return 0;
+	if (id == -1) {
+		KB_errlog("No dwelling registered at %d,%d (tile 0x%02X), can't enter\n", game->x, game->y, game->map[game->continent][game->y][game->x]);
+		return 0;
+	}
 
 	int max = 9999;
 
@@ -6680,8 +6683,7 @@ void adventure_loop(KBgame *game) {
 					case TILE_DWELLING_1:
 					case TILE_DWELLING_2:
 					case TILE_DWELLING_3:	walk = visit_dwelling(game, m - TILE_DWELLING_1); break;
-					case 0x80: case 0x81: case 0x82: case 0x83:	/* DOS map dwellings */
-											walk = visit_dwelling(game, m - 0x80); break;
+					case 0x80:	/* grass variant in DOS maps, nothing to do */	break;
 					case TILE_SIGNPOST: 	read_signpost(game);    	break;
 					case TILE_FOE:      	walk = !attack_foe(game);
 					if (walk) continue;	break;

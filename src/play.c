@@ -315,12 +315,12 @@ void salt_continent(KBgame *game, int continent, int min_artifacts, int min_navm
 					barrel_index++;
 				}
 			}
-			else if ((game->map[continent][j][i] >= 0x80 && game->map[continent][j][i] <= 0x83)
-			      || game->map[continent][j][i] == 0x8C) {
-				/* Dwelling already placed on the map (DOS maps use 0x80-0x83
-				 * for the four kinds, the free map 0x8C for plains) */
+			else if (game->map[continent][j][i] == 0x8C
+			      || game->map[continent][j][i] == 0x8D
+			      || game->map[continent][j][i] == 0x8F) {
+				/* Dwelling already placed on the map (0x8E is the telecave) */
 				byte m = game->map[continent][j][i];
-				int type = (m == 0x8C ? 0 : m - 0x80);
+				int type = m - 0x8C;
 				if (num_dwellings < MAX_DWELLINGS) {
 					game->dwelling_coords[continent][num_dwellings][0] = i;
 					game->dwelling_coords[continent][num_dwellings][1] = j;
