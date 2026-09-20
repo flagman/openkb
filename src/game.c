@@ -5171,14 +5171,15 @@ int debug_cheat_menu(KBgame *game, KBcombat *war) {
 int combat_options_menu(KBgame *game) {
 
 	char* item_names[] = {
-		"Move Down",
+		/* Same order as the arrow hotkeys in combat_state */
+		"Up Left",
+		"Move Up",
+		"Up Right",
 		"Move Left",
 		"Move Right",
-		"Move Up",
 		"Down Left",
+		"Move Down",
 		"Down Right",
-		"Up Left",
-		"Up Right",
 		
 		"View Army",
 		"Controls",
