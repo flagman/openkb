@@ -10,23 +10,23 @@ Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-
 
 ## Controls
 
-| Control       | Action                                        |
-|---------------|-----------------------------------------------|
-| D-pad         | Move the hero / move the cursor in menus      |
-| L1 + Up/Down  | Move up-left / down-left                      |
-| R1 + Up/Down  | Move up-right / down-right                    |
-| East button (A on Anbernic) / Start | Confirm, continue (Enter) |
-| South button (B on Anbernic) | Back, close (Esc)   |
-| Select + Start | Quit the port (use Options > Quit and Save first to keep progress) |
-| X             | Options menu with every command               |
-| Y             | Wait (skip the unit's turn in combat, end week on the map) |
-| Y (Load menu) | Delete the highlighted saved game, after a confirmation |
-| L2            | View army                                     |
-| R2            | Use magic                                     |
-| Left stick    | Same as d-pad                                 |
-| Right stick   | Mouse pointer, click with L3 / R3             |
+Buttons are listed by position, because the letters printed on them differ between devices: Anbernic, Miyoo, TrimUI and Powkiddy use the Nintendo layout, Retroid, Odin and AYN the Xbox one. The in-game legend (Options menu) uses the Xbox/SDL letters, the same convention as PortMaster itself.
 
-The Options menu (X) lists every command with its button; every menu can be walked with the d-pad and picked with the confirm button. Name entry: Up/Down pick a letter, Right moves to the next one, Left erases, confirm accepts (an empty name becomes the class name). In "How many?" prompts Up/Down change the number by 1 and Left/Right by 10; leaving it empty means "all".
+| Control       | Nintendo label | Xbox label | Action                                        |
+|---------------|----------------|------------|-----------------------------------------------|
+| D-pad / Left stick | | | Move the hero, move the cursor in menus  |
+| L1 + Up/Down  | | | Move up-left / down-left                      |
+| R1 + Up/Down  | | | Move up-right / down-right                    |
+| East button / Start | A | B | Confirm, continue (Enter)             |
+| South button  | B | A | Back, close (Esc)                             |
+| North button  | X | Y | Wait (skip the unit's turn in combat, end week on the map); in the Load menu: delete the highlighted saved game after a confirmation |
+| West button   | Y | X | Options menu with every command               |
+| L2            | | | View army                                     |
+| R2            | | | Use magic                                     |
+| Right stick   | | | Mouse pointer, click with L3 / R3             |
+| Select + Start | | | Quit the port (use Options > Quit and Save first to keep progress) |
+
+The Options menu (west button) lists every command with its button; every menu can be walked with the d-pad and picked with the confirm button. Name entry: Up/Down pick a letter, Right moves to the next one, Left erases, confirm accepts (an empty name becomes the class name). In "How many?" prompts Up/Down change the number by 1 and Left/Right by 10; leaving it empty means "all".
 
 ## Building
 
