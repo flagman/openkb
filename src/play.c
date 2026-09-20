@@ -774,6 +774,8 @@ void promote_player(KBgame *game) {
 	game->rank += 1;
 
 	player_accept_rank(game);
+	/* The new rank's leadership applies right away, not at the next week */
+	game->leadership += classes[game->class][game->rank].leadership;
 }
 
 void clear_fog(KBgame *game) {
