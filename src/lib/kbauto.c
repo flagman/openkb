@@ -369,6 +369,15 @@ void discover_modules(const char *path, KBconfig *conf) {
 
 			/* As soon as 2 are assembled, register as module */
 			if (dosGRP2 != -1 && dosEXE != -1) {
+				/* Directory order is arbitrary: 416.CC may still be ahead of us.
+				 * Look for it in the same directory so the set is registered once. */
+				if (dosGRP1 == -1) {
+					int j;
+					for (j = i + 1; j < n_result; j++) {
+						if (result[j].kb_family == KBFAMILY_DOS && result[j].companion == 0
+						 && !strcmp(result[j].path, result[i].path)) { dosGRP1 = j; break; }
+					}
+				}
 
 				/* Better to have 3 */
 				if (dosGRP1 != -1)	{		
@@ -381,11 +390,10 @@ void discover_modules(const char *path, KBconfig *conf) {
 				add_module_aux(conf, "DOS (CGA)", KBFAMILY_DOS, 2, result[i].path, result[dosGRP2].filename, "", NULL);
 				add_module_aux(conf, "DOS (EGA)", KBFAMILY_DOS, 4, result[i].path, result[dosGRP2].filename, "", NULL);
 				
-				if (dosGRP1 != -1) {
-					/* Reset groups */
-					dosGRP1 = -1;
-					dosGRP2 = -1;
-				}
+				/* Reset the set so the next directory starts clean */
+				dosGRP1 = -1;
+				dosGRP2 = -1;
+				dosEXE = -1;
 			}
 			
 		}
