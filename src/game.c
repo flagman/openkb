@@ -6035,8 +6035,9 @@ int ai_unit_think(KBcombat *combat) {
 		//SDL_Delay(300);
 	}
 
-	/* Try moving */
-	if (!acted && !u->shots) {
+	/* Try moving (or melee: moving into an enemy attacks it). Shooters only
+	 * walk when out of ammo, but they still fight back when someone is adjacent. */
+	if (!acted && (!u->shots || close_target != -1)) {
 		int ox, oy;
 
 		/* There's no one nearby */
