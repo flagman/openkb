@@ -723,13 +723,15 @@ void KBenv_audio_callback(void *userdata, Uint8 *stream, int len) {
 
 	KBenv *sys = (KBenv *) userdata;
 
+	/* SDL2 hands us an uninitialized buffer; anything we don't fill must be
+	 * silence, otherwise the device keeps replaying stale data. */
+	SDL_memset(stream, sys->mixer.silence, len);
+
 	/* We need to figure out and write "len" samples,
 	 * so this condition for outer loop is a reasonable assumption. */
 	while (len) {
 
-		if (sys->sound == NULL) { /* No sample selected, fill with silence and break */
-			int i;
-			//for (i = 0; i < len; i++) *stream++ = sys->mixer.silence;
+		if (sys->sound == NULL) { /* No sample selected, rest is already silence */
 			break;
 		}
 
