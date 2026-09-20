@@ -817,9 +817,9 @@ KBgame *select_game(KBconfig *conf) {
 				KB_iloc(local.status.x, local.status.y);
 				KB_icolor(local.status_colors);
 				if (sel < 4)
-					KB_iprintf("Select: %c %-9s   \x1A\x1B Enter, L-Load", 'A' + sel, classes[sel][0].title);
+					KB_iprintf("Select: %c %-9s      L-Load", 'A' + sel, classes[sel][0].title);
 				else
-					KB_iprint ("Select: L Load saved game   \x1A\x1B Enter");
+					KB_iprint ("Select: L Load saved game");
 			}
 
 			KB_flip(sys);
