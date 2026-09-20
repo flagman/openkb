@@ -2663,6 +2663,8 @@ void gather_information(KBgame *game, int id) {
 	KB_iprintf("Castle %s is under\n", castle_names[id]);
 	if (game->castle_owner[id] == KBCASTLE_MONSTERS) {
 		KB_iprint("no one's rule.\n");
+	} else if (game->castle_owner[id] == KBCASTLE_PLAYER) {
+		KB_iprint("your rule.\n");
 	} else {
 		char *name = STR_LoadRESOURCE(STRL_VNAMES, 0, game->castle_owner[id] & KBCASTLE_VILLAIN);
 		KB_iprintf("%s's rule.\n", name);

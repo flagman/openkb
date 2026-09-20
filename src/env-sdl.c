@@ -665,7 +665,11 @@ char *STRL_LoadRESOURCE(int id, int sub_id) {
 
 char *STR_LoadRESOURCE(int id, int sub_id, int line) {
 	char *list = KB_Resolve(id, sub_id);
-	char *match = KB_strlist_peek(list, line);
+	char *match = list ? KB_strlist_peek(list, line) : NULL;
+	if (match == NULL) {
+		KB_errlog("Missing string %s::%d line %d\n", KBresid_names[id], sub_id, line);
+		match = "";
+	}
 	int len = strlen(match) + 1;
 	char *item = malloc(sizeof(char) * len);
 	item[0] = '\0';
