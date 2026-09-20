@@ -910,8 +910,13 @@ KBgame *select_game(KBconfig *conf) {
 	}
 
 	if (game) {
-		if (done == 1) KB_MessageBox("%s the %s,\n\nA new game is being created. Please wait while I perform godlike actions to make this game playable.",  0);
-		if (done == 2) KB_MessageBox("%s the %s,\n\nPlease wait while I prepare a suitable environment for your bountying enjoyment!",  0);
+		char message[256];
+		snprintf(message, sizeof(message), "%s the %s,\n\n%s",
+			game->name, classes[game->class][game->rank].title,
+			done == 1
+				? "A new game is being created. Please wait while I perform godlike actions to make this game playable."
+				: "Please wait while I prepare a suitable environment for your bountying enjoyment!");
+		KB_MessageBox(message, MSG_WAIT);	/* shown while the game is set up, no key needed */
 	}
 
 	SDL_FreeSurface(title);
