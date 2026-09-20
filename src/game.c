@@ -625,8 +625,9 @@ KBgame *load_game() {
 		name_split(e->d_name, base, ext);
 
 		if (strcasecmp("DAT", ext)) continue;
-		strcpy(filename[num_files], base);
-		strcpy(fullname[num_files], e->d_name);
+		if (num_files >= 10) break;	/* the menu holds ten entries */
+		KB_strncpy(filename[num_files], base, sizeof(filename[0]));
+		KB_strncpy(fullname[num_files], e->d_name, sizeof(fullname[0]));
 		num_files++;
     }
 	KB_closedir(d);

@@ -194,7 +194,7 @@ char* KB_strlist_replace(char *list, int ind, const char *new_value, int freesrc
 	if (ind >= max) return NULL;
 
 	new_len = KB_strlist_len(list) - strlen(old_value) + strlen(new_value);
-	new_list = malloc(sizeof(char) * new_len);
+	new_list = malloc(sizeof(char) * (new_len + 1));	/* + the 0xFF terminator */
 	if (new_list == NULL) return NULL;
 
 	j = 0;

@@ -62,6 +62,7 @@ static void crash_handler(int sig) {
 	int n = backtrace(frames, 32);
 	fprintf(stderr, "\nFatal signal %d, backtrace:\n", sig);
 	backtrace_symbols_fd(frames, n, STDERR_FILENO);
+	if (sig == SIGUSR1) return;	/* stack dump on request (kill -USR1) */
 	signal(sig, SIG_DFL);
 	raise(sig);
 }
@@ -75,6 +76,7 @@ int main(int argc, char* argv[]) {
 		void *warm[4];
 		backtrace(warm, 4);
 	}
+	signal(SIGUSR1, crash_handler);
 	signal(SIGSEGV, crash_handler);
 	signal(SIGBUS, crash_handler);
 	signal(SIGABRT, crash_handler);
