@@ -286,6 +286,12 @@ int read_cmd_config(struct KBconfig *conf, int argc, char *args[]) {
 				continue;
 			}
 
+			if (!KB_strcasecmp(args[i], "--gamepad")) {
+				conf->gamepad = 1;
+				conf->set[C_gamepad] = 1;
+				continue;
+			}
+
 			if (!KB_strcasecmp(args[i], "--rootdir") && i + 1 < argc) {
 				KB_strcpy(conf->install_dir, args[i + 1]);
 				conf->set[C_install_dir] = 1;
@@ -352,6 +358,8 @@ void wipe_config(struct KBconfig *conf) {
 
 	conf->sound = 0;
 	conf->set[C_sound] = 0;
+	conf->gamepad = 0;
+	conf->set[C_gamepad] = 0;
 
 	conf->filter = 0;
 	conf->set[C_filter] = 0;
@@ -427,6 +435,7 @@ void report_config(struct KBconfig *conf) {
 	KB_debuglog(0, "Save dir:\t %s\n", conf->save_dir);
 
 	KB_debuglog(0, "Enable Sound:\t %s\n", conf->sound ? "Yes" : "No");
+	KB_debuglog(0, "Gamepad labels:\t %s\n", conf->gamepad ? "Yes" : "No");
 	KB_debuglog(0, "Fullscreen:\t %s\n", conf->fullscreen ? "Yes" : "No");
 	KB_debuglog(0, "Zoom Filter:\t %s\n", (conf->filter == 1 ? "Normal2x" : conf->filter ? "Scale2x" : "None" ));
 	KB_debuglog(0, "Auto-discover modules:\t %s\n", conf->autodiscover ? "Yes" : "No");
@@ -499,6 +508,7 @@ void apply_config(struct KBconfig* dst, struct KBconfig* src) {
 	if (src->set[C_filter]) dst->filter = src->filter;
 	
 	if (src->set[C_sound]) dst->sound = src->sound;
+	if (src->set[C_gamepad]) dst->gamepad = src->gamepad;
 	
 	if (src->set[C_autodiscover]) dst->autodiscover = src->autodiscover;
 	if (src->set[C_fallback]) dst->fallback = src->fallback;

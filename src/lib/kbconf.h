@@ -65,6 +65,7 @@ typedef void*	(*KBresolve_cb)(KBmodule *mod, int id, int sub_id);
 #define C_autodiscover 7
 #define C_fallback     8
 #define C_sound        9
+#define C_gamepad      11
 
 typedef struct KBconfig {
 
@@ -80,6 +81,7 @@ typedef struct KBconfig {
 	int autodiscover;
 	int fallback;
 	int sound;
+	int gamepad;	/* show gamepad buttons instead of key names */
 
 	int set[16];//what is SET
 

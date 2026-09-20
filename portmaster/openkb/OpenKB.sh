@@ -32,5 +32,5 @@ export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 
 $GPTOKEYB2 "openkb.aarch64" -c "$GAMEDIR/openkb.gptk" &
 pm_platform_helper "$GAMEDIR/openkb.aarch64"
-./openkb.aarch64 --fullscreen --rootdir "$GAMEDIR/data"
+./openkb.aarch64 --fullscreen --gamepad --rootdir "$GAMEDIR/data"
 pm_finish
