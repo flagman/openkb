@@ -588,6 +588,70 @@ KBgame *create_game(int pclass) {
 }
 
 /* load game screen (pick savefile) */
+#define MAX_SAVES 9	/* as in the DOS original; also the size of the menu */
+#define SAVE_DELETE_D  (3 + MAX_SAVES)
+#define SAVE_DELETE_W  (4 + MAX_SAVES)
+
+/* List the *.DAT files of the save directory, return how many were found */
+static int scan_saves(const char *dir, char filename[][16], char fullname[][16]) {
+	int num_files = 0;
+	KB_DIR *d = KB_opendir(dir);
+	KB_Entry *e;
+	if (d == NULL) return 0;
+	while ((e = KB_readdir(d)) != NULL) {
+		char base[255];
+		char ext[255];
+
+		if (e->d_name[0] == '.') continue;
+
+		name_split(e->d_name, base, ext);
+
+		if (strcasecmp("DAT", ext)) continue;
+		if (num_files >= MAX_SAVES) break;
+		KB_strncpy(filename[num_files], base, 16);
+		KB_strncpy(fullname[num_files], e->d_name, 16);
+		num_files++;
+	}
+	KB_closedir(d);
+	return num_files;
+}
+
+extern KBgamestate yes_no_question;
+
+/* Ask, then remove the save file. Returns 1 if it was deleted. */
+static int delete_save(const char *dir, const char *fullname, const char *name) {
+	SDL_Surface *screen = sys->screen;
+	SDL_Surface *backup = SDL_ConvertSurface(screen, screen->format, 0);
+	char buffer[PATH_LEN];
+	char question[64];
+	int key = 0;
+
+	sprintf(question, "Delete %.14s?\n%s", name,
+		sys->conf->gamepad ? "Confirm: Yes  Back: No" : "     (y/n)     ");
+	KB_MessageBox(question, MSG_WAIT);
+
+	while (!key) key = KB_event(&yes_no_question);
+
+	/* Put back whatever the question box covered */
+	if (backup) {
+		SDL_BlitSurface(backup, NULL, screen, NULL);
+		SDL_FreeSurface(backup);
+	}
+	if (key != 1) return 0;
+
+	KB_dircpy(buffer, dir);
+	KB_dirsep(buffer);
+	KB_strcat(buffer, fullname);
+
+	if (remove(buffer)) {
+		KB_errlog("Unable to delete save '%s'\n", buffer);
+		KB_MessageBox("Unable to delete the saved game.", MSG_FLUSH);
+		return 0;
+	}
+	KB_stdlog("Deleted save '%s'\n", buffer);
+	return 1;
+}
+
 KBgame *load_game() {
 	SDL_Surface *screen = sys->screen;
 	KBconfig *conf = sys->conf;
@@ -605,46 +669,27 @@ KBgame *load_game() {
 	SDL_Rect menu;
 	SDL_Rect menu_inner;
 
-	char filename[10][16];
-	char fullname[10][16];
-	byte cache[10] = { 0 };
-	byte rank[10];
-	byte pclass[10];
+	char filename[MAX_SAVES][16];
+	char fullname[MAX_SAVES][16];
 	int num_files = 0;
 
 	SDL_Rect *fs = &sys->font_size;
 
-	KB_DIR *d = KB_opendir(conf->save_dir);
-	KB_Entry *e;
-    while ((e = KB_readdir(d)) != NULL) {
-		char base[255];
-		char ext[255];
+	int i, l = 14;
 
-		if (e->d_name[0] == '.') continue;
-		
-		name_split(e->d_name, base, ext);
+	/* The screen as it was before the menu, to redraw it from scratch */
+	SDL_Surface *backdrop = SDL_ConvertSurface(screen, screen->format, 0);
 
-		if (strcasecmp("DAT", ext)) continue;
-		if (num_files >= 10) break;	/* the menu holds ten entries */
-		KB_strncpy(filename[num_files], base, sizeof(filename[0]));
-		KB_strncpy(fullname[num_files], e->d_name, sizeof(fullname[0]));
-		num_files++;
-    }
-	KB_closedir(d);
+rescan:
+	num_files = scan_saves(conf->save_dir, filename, fullname);
 
 	if (num_files == 0) {
 		KB_MessageBox("This disk has no characters on it. Try creating a new\ncharacter or copy one from another disk.", 0);
+		free(colors_inner);
+		if (backdrop) SDL_FreeSurface(backdrop);
 		return NULL;
 	}
-
-	/* Prepare menu */
-	int i, l = 0;
-	for (i = 0; i < num_files; i++) {
-		int mini_l = strlen(filename[i]);
-		if (mini_l > l) l = mini_l;
-	}
-
-	l = 14;
+	if (sel > num_files - 1) sel = num_files - 1;
 
 	/* Size */
 	menu.w = l * fs->w + fs->w * 2;
@@ -652,17 +697,16 @@ KBgame *load_game() {
 
 	/* To the center of the screen */
 	menu.x = (screen->w - menu.w) / 2;
-	//menu.y = (screen->h - menu.h) / 2;
 
 	/* A little bit up */
 	menu.y = fs->h + 4 * fs->h;
 
-	/* Update mouse hot-spots */
-	for (i = 0; i < num_files; i++) {
+	/* Update mouse hot-spots (rows past num_files get an empty rect) */
+	for (i = 0; i < MAX_SAVES; i++) {
 		savegame_selection.spots[i + 3].coords.x = menu.x + fs->w * 2;
 		savegame_selection.spots[i + 3].coords.y = menu.y + fs->h * 4 + i * fs->h;
-		savegame_selection.spots[i + 3].coords.w = menu.w - fs->w;
-		savegame_selection.spots[i + 3].coords.h = fs->h;
+		savegame_selection.spots[i + 3].coords.w = i < num_files ? menu.w - fs->w : 0;
+		savegame_selection.spots[i + 3].coords.h = i < num_files ? fs->h : 0;
 	}
 
 	/* Inner menu position and size */
@@ -671,6 +715,7 @@ KBgame *load_game() {
 	menu_inner.w = menu.w - fs->w*7;
 	menu_inner.h = fs->h * num_files + (fs->h/4)*2;
 
+	redraw = 1;
 	while (!done) {
 
 		key = KB_event( &savegame_selection );
@@ -683,7 +728,16 @@ KBgame *load_game() {
 
 		if (key == 1) { sel--; redraw = 1; }
 		if (key == 2) { sel++; redraw = 1; }
-		if (key >= 3 && key != 0xFF) {
+		if (key == SAVE_DELETE_D || key == SAVE_DELETE_W) {
+			if (sel >= 0 && sel < num_files && delete_save(conf->save_dir, fullname[sel], filename[sel])) {
+				/* The menu shrinks: restore the backdrop and rebuild it */
+				if (backdrop) SDL_BlitSurface(backdrop, NULL, screen, NULL);
+				goto rescan;
+			}
+			key = 0;
+			redraw = 1;
+		}
+		if (key >= 3 && key < 3 + MAX_SAVES) {
 			char buffer[PATH_LEN];
 			KB_dircpy(buffer, conf->save_dir);
 			KB_dirsep(buffer);
@@ -695,8 +749,6 @@ KBgame *load_game() {
 
 			done = 1;
 		}
-		//if (key == 3) { done = 1; }
-		//if (key >= 4) { done = 1; }
 
 		if (sel < 0) sel = 0;
 		if (sel > num_files - 1) sel = num_files - 1;
@@ -730,7 +782,10 @@ KBgame *load_game() {
 
 			KB_icolor(local.status_colors);
 			KB_iloc(local.status.x, local.status.y);
-			KB_iprint(" 'ESC' to exit \x18\x19 Return to Select  ");
+			if (sys->conf->gamepad)
+				KB_iprint(" Back-Exit Confirm-Select Y-Delete  ");
+			else
+				KB_iprint(" ESC-Exit \x18\x19 Return-Select D-Delete  ");
 
 			KB_flip(sys);
 			redraw = 0;
@@ -738,6 +793,7 @@ KBgame *load_game() {
 
 	}
 	free(colors_inner);
+	if (backdrop) SDL_FreeSurface(backdrop);
 
 	if (game)
 	{

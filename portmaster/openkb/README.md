@@ -20,6 +20,7 @@ Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-
 | Select + Start | Quit the port (use Options > Quit and Save first to keep progress) |
 | X             | Options menu with every command               |
 | Y             | Wait (skip the unit's turn in combat, end week on the map) |
+| Y (Load menu) | Delete the highlighted saved game, after a confirmation |
 | L2            | View army                                     |
 | R2            | Use magic                                     |
 | Left stick    | Same as d-pad                                 |

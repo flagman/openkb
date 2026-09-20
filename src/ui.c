@@ -150,7 +150,10 @@ KBgamestate savegame_selection = {
 		{	_AREA(0, 0, 0, 0), SDLK_6, 0, 0		},
 		{	_AREA(0, 0, 0, 0), SDLK_7, 0, 0		},
 		{	_AREA(0, 0, 0, 0), SDLK_8, 0, 0		},
-		{	_AREA(0, 0, 0, 0), SDLK_9, 0, 0		},		
+		{	_AREA(0, 0, 0, 0), SDLK_9, 0, 0		},
+		/* Delete the highlighted save: D on a keyboard, Y (w) on the port's gamepad */
+		{	_NON, SDLK_d, 0, 0	},
+		{	_NON, SDLK_w, 0, 0	},
 		0,
 	},
 	0
