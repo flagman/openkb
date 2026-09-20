@@ -846,10 +846,14 @@ int select_module() {
 		module_selection.spots[i + 3].coords.h = 8;
 	}
 
+	/* Hotspots 0-2 are keys, 3+ are the menu rows; keep hover in sync with
+	 * the keyboard selection so the first key press isn't swallowed. */
+	module_selection.hover = sel + 3;
+
 	while (!done) {
 
 		key = KB_event( &module_selection );
-		if (module_selection.hover - 3 != sel) {
+		if (module_selection.hover >= 3 && module_selection.hover - 3 != sel) {
 			sel = module_selection.hover - 3;
 			redraw = 1;
 		}
