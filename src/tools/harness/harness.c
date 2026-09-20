@@ -19,7 +19,7 @@ static int (*REAL_UpdateTexture)(SDL_Texture *, const SDL_Rect *, const void *, 
 static int (*REAL_OpenAudio)(SDL_AudioSpec *, SDL_AudioSpec *);
 #endif
 static char *script = NULL, *cursor = NULL;
-static const char *outdir = ".";
+static const char *outdir = NULL;	/* frames are dumped only when OPENKB_TEST_DIR is set */
 static Uint32 last_inject = 0, interval = 500;
 static int pending_up = 0; static SDL_Keycode pending_key = 0;
 static int done_script = 0; static int quit_sent = 0;
@@ -82,7 +82,7 @@ int my_UpdateTexture(SDL_Texture *t, const SDL_Rect *rect, const void *pixels, i
 	size_t size = (size_t)pitch * h;
 	if (!lastframe || lastsize != size || memcmp(lastframe, pixels, size) != 0) {
 		lastframe = realloc(lastframe, size); lastsize = size; memcpy(lastframe, pixels, size);
-		if (nframes < 200) {
+		if (outdir && nframes < 200) {
 			char path[1024]; snprintf(path, sizeof path, "%s/frame-%03d.bmp", outdir, nframes);
 			SDL_Surface *s = SDL_CreateRGBSurfaceFrom((void*)pixels, w, h, 32, pitch, 0x00FF0000, 0x0000FF00, 0x000000FF, 0);
 			SDL_SaveBMP(s, path); SDL_FreeSurface(s);
