@@ -573,20 +573,22 @@ char* KB_KeyLabel(int key1, int key2) {
 
 	if (sys->conf->gamepad) {
 		/* Names of the port's controller mapping (openkb.gptk) instead of keys */
+		/* Every label is 4 characters wide so the command names line up */
 		key2 = -1;
-		if (key1 == SDLK_UP) sprintf(val1, "  \x18 ");
-		if (key1 == SDLK_DOWN) sprintf(val1, "  \x19 ");
-		if (key1 == SDLK_LEFT) sprintf(val1, "  \x1A ");
-		if (key1 == SDLK_RIGHT) sprintf(val1, "  \x1B ");
+		sprintf(val1, "   %c", KB_KeyLabelChar(key1));
+		if (key1 == SDLK_UP) sprintf(val1, "   \x18");
+		if (key1 == SDLK_DOWN) sprintf(val1, "   \x19");
+		if (key1 == SDLK_LEFT) sprintf(val1, "   \x1A");
+		if (key1 == SDLK_RIGHT) sprintf(val1, "   \x1B");
 		if (key1 == SDLK_HOME) sprintf(val1, "L1+\x18");
 		if (key1 == SDLK_PAGEUP) sprintf(val1, "L1+\x1B");
 		if (key1 == SDLK_PAGEDOWN) sprintf(val1, "L1+\x19");
 		if (key1 == SDLK_END) sprintf(val1, "L1+\x1A");
-		if (key1 == SDLK_o) sprintf(val1, "  X ");
-		if (key1 == SDLK_v) sprintf(val1, "  Y ");
-		if (key1 == SDLK_a) sprintf(val1, " L2 ");
-		if (key1 == SDLK_u) sprintf(val1, " R2 ");
-		if (key1 == SDLK_SPACE) sprintf(val1, "  SPC");
+		if (key1 == SDLK_o) sprintf(val1, "   X");
+		if (key1 == SDLK_v) sprintf(val1, "   Y");
+		if (key1 == SDLK_a) sprintf(val1, "  L2");
+		if (key1 == SDLK_u) sprintf(val1, "  R2");
+		if (key1 == SDLK_SPACE) sprintf(val1, " SPC");
 		sprintf(buf, "%s", val1);
 		return &buf[0];
 	}
