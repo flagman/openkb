@@ -1363,7 +1363,7 @@ void draw_combat(KBcombat *war) {
 
 				KBunit *u = &war->units[j][i];
 
-				if (u->turn_count == 0) continue;
+				if (u->count == 0) continue;
 
 				SDL_Rect src = { u->frame * tile->w, j * tile->h, tile->w, tile->h };
 				SDL_Rect dst = { 0, 0, tile->w, tile->h };
@@ -1377,7 +1377,7 @@ void draw_combat(KBcombat *war) {
 
 				if (draw_army_size) {
 					char count[8];
-					sprintf(count, "%d", u->turn_count);
+					sprintf(count, "%d", u->count);	/* current size, not the start-of-turn snapshot */
 					KB_iloc(dst.x + dst.w - strlen(count) * sys->font_size.w, dst.y + dst.h - sys->font_size.h);
 					KB_icolor(colors_size);
 					KB_iprint(count);
