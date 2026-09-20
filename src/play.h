@@ -131,6 +131,18 @@ extern void reset_turn(KBcombat *war);
 extern void wipe_battlefield(KBcombat *war);
 extern void reset_match(KBcombat *war, int castle);
 extern int compact_units(KBcombat *war);
+
+/* What the last end_week() did with the budget, for the summary screen */
+typedef struct KBweekReport {
+	byte troops[5];
+	word numbers[5];
+	dword costs[5];
+	byte left[5];	/* 1 = this stack could not be paid and left */
+	int n;
+	dword on_hand, commission, boat, army, balance;
+	int all_left;	/* the whole army left */
+} KBweekReport;
+extern KBweekReport week_report;
 extern int next_turn(KBcombat *war);
 extern int next_unit(KBcombat *war);
 extern int units_are_friendly(KBcombat *war, int side, int id, int other_side, int other_id);

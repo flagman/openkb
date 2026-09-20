@@ -1001,9 +1001,10 @@ void temp_death(KBgame *game) {
 	game->player_numbers[0] = 20;
 }
 
+KBweekReport week_report;
+
 byte end_week(KBgame *game) {
 	int i, j, cont;
-	dword credit;
 	byte creature;
 
 	/* Reset player */
@@ -1016,24 +1017,46 @@ byte end_week(KBgame *game) {
 	else
 		creature = KB_rand(1, MAX_TROOPS - 1);
 
-	/** Budget **/
-	credit = 0;
+	/** Budget -- as the DOS original does it:
+	 *  funds = gold + commission - boat rent; stacks are charged in slot
+	 *  order and a stack whose upkeep no longer fits leaves the army. */
+	{
+		long funds, charged = 0;
+		int n = 0, kept = 0;
+		KBweekReport *r = &week_report;
 
-	/* Add commission */
-	game->gold += game->commission;
+		r->on_hand = game->gold;
+		r->commission = game->commission;
+		r->boat = player_has_boat(game) ? boat_cost(game) : 0;
+		funds = (long)game->gold + r->commission - r->boat;
 
-	/* Count Boat */
-	credit += player_has_boat(game) ? boat_cost(game) : 0;
+		for (i = 0; i < 5; i++) {
+			long cost;
+			if (game->player_numbers[i] == 0) break;
+			cost = (long)game->player_numbers[i] * (troops[ game->player_troops[i] ].recruit_cost / 10);
+			r->troops[n] = game->player_troops[i];
+			r->numbers[n] = game->player_numbers[i];
+			r->costs[n] = cost;
+			if (charged + cost > funds) {
+				r->left[n] = 1;
+			} else {
+				r->left[n] = 0;
+				charged += cost;
+				kept++;
+			}
+			n++;
+		}
+		r->n = n;
+		r->army = charged;
+		funds -= charged;
+		game->gold = funds > 0 ? funds : 0;
+		r->balance = game->gold;
 
-	/* Count Army */
-	for (i = 0; i < 5; i++) {
-		if (game->player_numbers[i] == 0) break;
-		credit +=
-			game->player_numbers[i] * (troops[ game->player_troops[i] ].recruit_cost / 10);
+		/* Remove the stacks that left, from the back so slots stay valid */
+		for (i = n - 1; i >= 0; i--)
+			if (r->left[i]) dismiss_troop(game, i);
+		r->all_left = (n > 0 && kept == 0);
 	}
-
-	/* Spend gold */
-	spend_gold(game, credit);
 
 	/** Turn ghosts into peasants **/
 	if (creature == 0)

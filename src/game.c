@@ -3796,7 +3796,6 @@ int attack_foe(KBgame *game) {
 
 void end_of_week(KBgame *game, int num) {
 	dword on_hand;
-	dword army_cost;
 	int i, key;
 
 	word days_passed = num * WEEK_DAYS;
@@ -3833,31 +3832,31 @@ void end_of_week(KBgame *game, int num) {
 
 	KB_iloc(text->x, text->y - fs->h / 4);
 	KB_iprintf("Week #%-3d             Budget\n\n", week_num);
-
-	army_cost = 0;
-	for (i = 0; i < 5; i++) {
-		if (game->player_numbers[i] == 0) break;
-		byte troop_id = game->player_troops[i];
-		/* Weekly upkeep is a tenth of the recruit cost, same as end_week() charges */
-		word cost = game->player_numbers[i] * (troops[troop_id].recruit_cost / 10);
-		army_cost += cost;
+	for (i = 0; i < week_report.n; i++) {
 		KB_icurs(14, 2 + i);
-		KB_iprintf("%-9s% 5d", troops[troop_id].name, cost);
+		if (week_report.left[i])
+			KB_iprintf("%-9s%5s", troops[week_report.troops[i]].name, "Leave");
+		else
+			KB_iprintf("%-9s% 5d", troops[week_report.troops[i]].name, (int)week_report.costs[i]);
 	}
-
 	KB_icurs(0, 2);
-	KB_iprintf("On Hand% 6d", on_hand);
+	KB_iprintf("On Hand% 6d", (int)week_report.on_hand);
 	KB_icurs(0, 3);
-	KB_iprintf("Payment% 6d", game->commission);
+	KB_iprintf("Payment% 6d", (int)week_report.commission);
 	KB_icurs(0, 4);
-	KB_iprintf("Boat   % 6d", player_has_boat(game) ? boat_cost(game) : 0);
+	KB_iprintf("Boat   % 6d", (int)week_report.boat);
 	KB_icurs(0, 5);
-	KB_iprintf("Army   % 6d", army_cost);
+	KB_iprintf("Army   % 6d", (int)week_report.army);
 	KB_icurs(0, 6);
-	KB_iprintf("Balance% 6d", game->gold);
-
+	KB_iprintf("Balance% 6d", (int)week_report.balance);
 	KB_flip(sys);
 	KB_Pause();
+
+	/* Nobody stayed: back to the King, as after a lost battle */
+	if (week_report.all_left) {
+		temp_death(game);
+		draw_defeat(game);
+	}
 
 
 	KB_stdlog("Week #%d (of %s): balance - %d gold\n", week_num, troops[creature].name, game->gold);
