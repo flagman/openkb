@@ -204,11 +204,6 @@ extern const char *KBresid_names[];
 #define TUNE_CHEST	5
 #define TUNE_DEFEAT	7
 #define TUNE_TELEPORT	9
-/* Combat sounds: not in the original data, synthesized by the engine
- * when a module can't provide them (see builtin_tune in env-sdl.c) */
-#define TUNE_HIT	10
-#define TUNE_SHOOT	11
-#define TUNE_MAGIC	12
 
 /* Refrence to EGA pallete, mostly used by DOS module. */
 #define EGA_BLACK	0

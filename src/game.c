@@ -3511,9 +3511,6 @@ void draw_defeat(KBgame *game) {
 #define UID_AS_PAIR(UID) UID_AS_SIDE(UID), UID_AS_ID(UID)
 #define PACK_UID(SIDE,ID) (SIDE * 5 + ID + 1)
 
-/* Combat sounds, loaded for the duration of a combat */
-static KBsound *snd_hit = NULL, *snd_shoot = NULL, *snd_magic = NULL;
-
 void hit_unit(KBcombat *war, int a_side, int a_id, int t_side, int t_id) {
 	int kills;
 	KBunit *u = &war->units[a_side][a_id];
@@ -3523,7 +3520,6 @@ void hit_unit(KBcombat *war, int a_side, int a_id, int t_side, int t_id) {
 	t->turn_count = t->count;
 
 	/* Attack */
-	KB_play(sys, snd_hit);
 	kills = unit_hit_unit(war, a_side, a_id, t_side, t_id);
 	draw_damage(war, t);
 	combat_log("%s vs %s, %d die", troops[u->troop_id].name, troops[t->troop_id].name, kills);
@@ -3532,7 +3528,6 @@ void hit_unit(KBcombat *war, int a_side, int a_id, int t_side, int t_id) {
 		t->retaliated = 1;
 
 		/* Retaliate */
-		KB_play(sys, snd_hit);
 		kills = unit_hit_unit(war, t_side, t_id, a_side, a_id);
 		draw_combat(war);//refresh screen
 		draw_damage(war, u);
@@ -5877,7 +5872,6 @@ void unit_try_shoot(KBcombat *war) {
 			other_side = 1;
 		}
 
-		KB_play(sys, snd_shoot);
 		kills = unit_ranged_shot(war, war->side, war->unit_id, other_side, other_id);
 
 		victim = &war->units[other_side][other_id];
@@ -5909,7 +5903,6 @@ void unit_ranged_damage(KBcombat *war, int other_side, int other_id) {
 
 	KBunit *u = &war->units[war->side][war->unit_id];
 
-	KB_play(sys, snd_shoot);
 	kills = unit_ranged_shot(war, war->side, war->unit_id, other_side, other_id);
 
 	victim = &war->units[other_side][other_id];
@@ -6172,10 +6165,6 @@ int combat_loop(KBgame *game, KBcombat *combat) {
 	KB_reset(&combat_state);
 	setup_grid(&combat_state, local.map.x, local.map.y, local.map_tile->w, local.map_tile->h, CLEVEL_W, CLEVEL_H);
 
-	snd_hit = KB_Resolve(SN_TUNE, TUNE_HIT);
-	snd_shoot = KB_Resolve(SN_TUNE, TUNE_SHOOT);
-	snd_magic = KB_Resolve(SN_TUNE, TUNE_MAGIC);
-
 	while (!done) {
 		key = KB_event(&combat_state);
 
@@ -6261,7 +6250,9 @@ int combat_loop(KBgame *game, KBcombat *combat) {
 			break;
 			case KEY_ACT(SHOOT):    	unit_try_shoot(combat);	break;
 			case KEY_ACT(USE_MAGIC):
-				if (choose_spell(game, combat) >= 0) KB_play(sys, snd_magic);
+
+				choose_spell(game, combat);
+
 			break;
 			case KEY_ACT(VIEW_CHAR):	view_character(game);	break;
 			case KEY_ACT(WAIT):     	pass = unit_try_wait(combat); 	break;
@@ -6350,12 +6341,6 @@ int combat_loop(KBgame *game, KBcombat *combat) {
 
 	}
 #undef KEY_ACT
-
-	/* Drop combat sounds (stop playback first, the mixer reads them) */
-	sys->sound = NULL;
-	if (snd_hit) { free(snd_hit->data); free(snd_hit); snd_hit = NULL; }
-	if (snd_shoot) { free(snd_shoot->data); free(snd_shoot); snd_shoot = NULL; }
-	if (snd_magic) { free(snd_magic->data); free(snd_magic); snd_magic = NULL; }
 
 	return done;
 }

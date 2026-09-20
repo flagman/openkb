@@ -696,35 +696,6 @@ SDL_Surface* KB_LoadIMG8(int id, int sub_id) {
 	return surf;
 }
 
-/*
- * Tiny built-in PC-speaker style tunes for events the original data has no
- * sound for. Used when no module resolves SN_TUNE::10+.
- */
-static KBsound* builtin_tune(int sub_id) {
-	static const struct { int n; word hz[4]; word ms[4]; } tab[] = {
-		/* TUNE_HIT   */ { 2, { 110, 65 }, { 31, 62 } },
-		/* TUNE_SHOOT */ { 3, { 330, 440, 660 }, { 15, 15, 31 } },
-		/* TUNE_MAGIC */ { 4, { 262, 330, 392, 523 }, { 62, 62, 62, 125 } },
-	};
-	int k, i = sub_id - TUNE_HIT;
-	struct tunFile *tun;
-	KBsound *snd;
-	if (i < 0 || i >= (int)(sizeof(tab) / sizeof(tab[0]))) return NULL;
-	tun = calloc(1, sizeof(struct tunFile));
-	snd = malloc(sizeof(KBsound));
-	if (!tun || !snd) { free(tun); free(snd); return NULL; }
-	for (k = 0; k < tab[i].n; k++) {
-		tun->palette.freq[k] = tab[i].hz[k];
-		tun->palette.duration[k] = tab[i].ms[k];
-		tun->notes[k] = k;
-		tun->delay[k] = k;
-	}
-	tun->num_notes = tab[i].n;
-	snd->type = KBSND_DOS;
-	snd->data = tun;
-	return snd;
-}
-
 void* GNU_Resolve(KBmodule *mod, int id, int sub_id);
 void* DOS_Resolve(KBmodule *mod, int id, int sub_id);
 void* MD_Resolve(KBmodule *mod, int id, int sub_id);
@@ -751,8 +722,6 @@ void* KB_Resolve(int id, int sub_id) {
 		}
 		if (ret != NULL) break;
 	}
-	if (ret == NULL && id == SN_TUNE && sub_id >= TUNE_HIT)
-		ret = builtin_tune(sub_id);
 	if (ret == NULL)
 		KB_errlog("Unable to resolve resource %s::%d (from %d modules)\n", KBresid_names[id], sub_id, l);
 	return ret;
