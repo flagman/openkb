@@ -92,6 +92,8 @@ extern KBenv *KB_startENV(KBconfig *conf);
 extern void KB_stopENV(KBenv *env);
 
 extern void KB_flip(KBenv *env);
+/* Optional overlay: if set and returns nonzero, that rect is shown inverted */
+extern int (*KB_flip_overlay)(SDL_Rect *rect);
 extern void KB_setcaption(KBenv *env, const char *title);
 
 extern void KB_play(KBenv *env, KBsound *snd);

@@ -177,6 +177,22 @@ char *text_input(int max_len, int numbers_only, int x, int y, int loc_id, int tr
 			if (troop_frame > 3) troop_frame = 0;
 			redraw = 1;
 		} else
+		if (numbers_only && (key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT)) {
+			/* Up/Down +-1, Left/Right +-10; 0 means "not entered" */
+			int i, lim = 1, val = atoi(entered_name);
+			for (i = 0; i < max_len; i++) lim *= 10;
+			lim -= 1;
+			if (key == SDLK_UP) val += 1;
+			if (key == SDLK_DOWN) val -= 1;
+			if (key == SDLK_RIGHT) val += 10;
+			if (key == SDLK_LEFT) val -= 10;
+			if (val < 0) val = 0;
+			if (val > lim) val = lim;
+			if (val == 0) entered_name[0] = '\0';
+			else snprintf(entered_name, sizeof(entered_name), "%d", val);
+			curs = strlen(entered_name);
+			redraw = 1;
+		} else
 		if (key) {
 			if (key < 128 && isascii(key) &&
 				 ( !numbers_only ||
@@ -196,7 +212,8 @@ char *text_input(int max_len, int numbers_only, int x, int y, int loc_id, int tr
 			if (loc_id != 0xFF) draw_location(loc_id, troop_id, troop_frame);
 
 			KB_iloc(x, y);
-			KB_iprintf("%s", entered_name);
+			if (numbers_only) KB_iprintf("%-*s", max_len, entered_name); /* wipe old digits */
+			else KB_iprintf("%s", entered_name);
 			KB_iloc(x + curs * fs->w, y);
 			KB_iprintf("%c", twirl[twirl_pos]);
 
@@ -525,8 +542,11 @@ KBgame *create_game(int pclass) {
 
 		if (!has_name) {
 			name = text_input(10, 0, menu.x + fs->w * 18, menu.y + fs->h, 0xFF, 0xFF);
-			if (name == NULL || name[0] == '\0') done = 1;
-			else has_name = 1;
+			if (name == NULL) done = 1;
+			else {
+				if (name[0] == '\0') KB_strncpy(name, classes[pclass][0].title, 11); /* no keyboard? use the class name */
+				has_name = 1;
+			}
 			redraw = 1;
 		}
 
@@ -5129,6 +5149,7 @@ int combat_options_menu(KBgame *game) {
 	KB_iprintf(" Options ");
 
 	KB_reset(&combat_state);
+	combat_state.kbnav = 1;
 
 	while (!done) {
 		if (redraw == 1) {
@@ -5163,6 +5184,7 @@ int combat_options_menu(KBgame *game) {
 				}
 
 				KB_iloc(border.x + fs->w, border.y + fs->h / 8 + j * fs->h);
+				KB_imenu(st, i, 22); /* row is clickable / selectable */
 				KB_iprintf("%s %s", KB_KeyLabel(st->spots[i].hot_key, store), item_names[j]);
 				j++;
 				store = -1;
@@ -5191,12 +5213,18 @@ int combat_options_menu(KBgame *game) {
 
 		if (key) {
 			done = 1;
-			key = 0;
 		}
 
 #undef KEY_ACT
 	}
 
+	/* Drop the row rectangles again, combat has no hotspot reset of its own */
+	{
+		int i;
+		for (i = 0; i < st->max_spots; i++)
+			if (!(st->spots[i].flag & KFLAG_GRID)) st->spots[i].coords.w = st->spots[i].coords.h = 0;
+	}
+	combat_state.kbnav = 0;
 	return key;
 }
 int options_menu(KBgame *game) {
@@ -5240,6 +5268,7 @@ int options_menu(KBgame *game) {
 
 	KB_reset(&adventure_state);
 	reset_adventure_dropdown_hotspots();
+	adventure_state.kbnav = 1;
 
 	while (!done) {
 		if (redraw == 1) {
@@ -5291,6 +5320,7 @@ int options_menu(KBgame *game) {
 				}
 
 				KB_iloc(border.x + fs->w, border.y + fs->h / 8 + k * fs->h);
+				KB_imenu(st, i, 22); /* row is clickable / selectable */
 				KB_iprintf("%s %s", KB_KeyLabel(st->spots[i].hot_key, store), item_names[j]);
 				//KB_iprintf("%s %s", buf, item_names[j]);
 				j++;
@@ -5320,12 +5350,18 @@ int options_menu(KBgame *game) {
 
 		if (key) {
 			done = 1;
-			key = 0;
 		}
 
 #undef KEY_ACT
 	}
 
+	adventure_state.kbnav = 0;
+	/* Drop the row rectangles; reset_adventure_hotspots() restores the sidebar ones */
+	{
+		int i;
+		for (i = 0; i < st->max_spots; i++)
+			if (!(st->spots[i].flag & KFLAG_GRID)) st->spots[i].coords.w = st->spots[i].coords.h = 0;
+	}
 	reset_adventure_hotspots();
 	reset_adventure_menu_hotspots(); /* pop */
 

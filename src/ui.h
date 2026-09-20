@@ -113,6 +113,11 @@ typedef struct KBgamestate {
 	int hover;
 	Uint32 last;
 
+	/* Keyboard/gamepad menu navigation is on by default for states without
+	 * UP/DOWN hotkeys; states that use arrows for movement set this while a
+	 * menu built on them is open. */
+	int kbnav;
+
 } KBgamestate;
 
 /*
@@ -179,6 +184,7 @@ extern KBgamestate alphabet_letter;
 extern void KB_imenu(KBgamestate *state, int id, int cols);
 extern int KB_reset(KBgamestate *state);
 extern int KB_event(KBgamestate *state);
+extern int KB_nav_rect(SDL_Rect *out);
 /* Utilities */
 extern char* KB_KeyLabel(int key1, int key2);
 extern void SDL_TextRect(SDL_Surface *dest, SDL_Rect *r, Uint32 fore, Uint32 back, int top);

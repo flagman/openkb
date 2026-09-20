@@ -247,6 +247,55 @@ void KB_imenu(KBgamestate *state, int id, int cols) {
 	state->spots[id].coords.h = sys->font_size.h;
 }
 
+/*
+ * Keyboard/gamepad menu navigation.
+ *
+ * Any hotspot with a real rectangle (rows made by KB_imenu or _AREA) is a
+ * "row". In states that don't use UP/DOWN themselves (or that set kbnav),
+ * arrows move state->hover between rows, Enter acts like a click on the
+ * hovered row, and KB_flip() shows the hovered row inverted.
+ */
+static KBgamestate *nav_state = NULL;
+
+static int nav_is_row(KBgamestate *st, int i) {
+	KBhotspot *sp = &st->spots[i];
+	if (sp->flag & (KFLAG_TIMER | KFLAG_GRID | KFLAG_ANYKEY)) return 0;
+	return sp->coords.w > 0 && sp->coords.h > 0;
+}
+
+static int nav_has_key(KBgamestate *st, Uint32 key) {
+	int i;
+	for (i = 0; i < st->max_spots; i++)
+		if (st->spots[i].hot_key == key) return 1;
+	return 0;
+}
+
+static int nav_active(KBgamestate *st) {
+	if (st->kbnav) return 1;
+	return !nav_has_key(st, SDLK_UP) && !nav_has_key(st, SDLK_DOWN);
+}
+
+/* Next row after 'from' in direction 'dir', wrapping; -1 if there are none */
+static int nav_step(KBgamestate *st, int from, int dir) {
+	int i, n = st->max_spots;
+	for (i = 1; i <= n; i++) {
+		int j = ((from + dir * i) % n + n) % n;
+		if (nav_is_row(st, j)) return j;
+	}
+	return -1;
+}
+
+static int nav_hover_is_row(KBgamestate *st) {
+	return st->hover >= 0 && st->hover < st->max_spots && nav_is_row(st, st->hover);
+}
+
+int KB_nav_rect(SDL_Rect *out) {
+	KBgamestate *st = nav_state;
+	if (!st || !nav_active(st) || !nav_hover_is_row(st)) return 0;
+	*out = st->spots[st->hover].coords;
+	return 1;
+}
+
 int KB_event(KBgamestate *state) {
 	SDL_Event event;
 
@@ -269,6 +318,19 @@ int KB_event(KBgamestate *state) {
 		for (i = 0; i < MAX_HOTSPOTS; i++) 
 			if (state->spots[i].hot_key == 0) break;
 		state->max_spots = i;
+	}
+
+	/* A new state took over: repaint so a stale cursor disappears */
+	if (nav_state != state) {
+		nav_state = state;
+		KB_flip_overlay = KB_nav_rect;
+		KB_flip(sys);
+	}
+	/* Point the cursor at the first row as soon as the state has rows
+	 * (some screens poll before they draw and place their rows) */
+	if (nav_active(state) && !nav_hover_is_row(state)) {
+		int first = nav_step(state, -1, 1);
+		if (first != -1) { state->hover = first; KB_flip(sys); }
 	}
 
 	/* Update current time */
@@ -338,6 +400,33 @@ int KB_event(KBgamestate *state) {
 
 		/* SDL 1.2 had no key repeat unless asked; we do our own via KFLAG_TIMEKEY */
 		if (event.type == SDL_KEYDOWN && event.key.repeat) continue;
+
+		/* Menu navigation: arrows move between rows, Enter picks the row */
+		if (event.type == SDL_KEYDOWN && nav_active(state)) {
+			SDL_Keycode k = event.key.keysym.sym;
+			int dir = 0;
+			if (k == SDLK_UP || k == SDLK_LEFT) dir = -1;
+			if (k == SDLK_DOWN || k == SDLK_RIGHT) dir = 1;
+			if (dir) {
+				int next = nav_step(state, state->hover, dir);
+				if (next != -1) { state->hover = next; KB_flip(sys); }
+				if (next != -1 || state->kbnav) continue;
+			}
+			if ((k == SDLK_RETURN || k == SDLK_KP_ENTER) &&
+				(state->kbnav || !nav_has_key(state, SDLK_RETURN))) {
+				if (nav_hover_is_row(state)) {
+					int h = state->hover;
+					eve = h + 1; /* !!! */
+					if (state->spots[h].flag & KFLAG_RETKEY) eve = state->spots[h].hot_key;
+					break;
+				}
+				if (nav_has_key(state, SDLK_y)) { /* yes/no prompt: Enter means yes */
+					for (i = 0; i < state->max_spots; i++)
+						if (state->spots[i].hot_key == SDLK_y) { eve = i + 1; break; }
+					break;
+				}
+			}
+		}
 
 		if (event.type == SDL_KEYDOWN) {
 			SDL_Keysym *kbd = &event.key.keysym;

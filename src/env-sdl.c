@@ -199,8 +199,25 @@ void KB_stopENV(KBenv *env) {
 	SDL_Quit();
 }
 
+int (*KB_flip_overlay)(SDL_Rect *rect) = NULL;
+
+static void invert_rect(SDL_Surface *s, SDL_Rect *r) {
+	int x, y, x0 = r->x, y0 = r->y, x1 = r->x + r->w, y1 = r->y + r->h;
+	if (s->format->BytesPerPixel != 4) return;
+	if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0;
+	if (x1 > s->w) x1 = s->w; if (y1 > s->h) y1 = s->h;
+	for (y = y0; y < y1; y++) {
+		Uint32 *p = (Uint32 *)((Uint8 *)s->pixels + y * s->pitch);
+		for (x = x0; x < x1; x++) p[x] ^= 0x00FFFFFF;
+	}
+}
+
 void KB_flip(KBenv *env) {
+	SDL_Rect ov;
+	int overlay = KB_flip_overlay && KB_flip_overlay(&ov);
+	if (overlay) invert_rect(env->screen, &ov);
 	SDL_UpdateTexture(env->texture, NULL, env->screen->pixels, env->screen->pitch);
+	if (overlay) invert_rect(env->screen, &ov);
 	SDL_RenderClear(env->renderer);
 	SDL_RenderCopy(env->renderer, env->texture, NULL, NULL);
 	SDL_RenderPresent(env->renderer);
