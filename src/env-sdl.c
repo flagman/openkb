@@ -761,7 +761,7 @@ void KBenv_audio_callback(void *userdata, Uint8 *stream, int len) {
 			break;
 		}
 
-		
+		stream += n;
 		len -= n;
 	}
 
