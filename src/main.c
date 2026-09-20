@@ -71,6 +71,10 @@ int main(int argc, char* argv[]) {
 	/* Line-buffer stdout so logs survive a crash when redirected to a file */
 	setvbuf(stdout, NULL, _IOLBF, 0);
 #ifdef __GLIBC__
+	{	/* backtrace() allocates on first use; do that now, not inside the handler */
+		void *warm[4];
+		backtrace(warm, 4);
+	}
 	signal(SIGSEGV, crash_handler);
 	signal(SIGBUS, crash_handler);
 	signal(SIGABRT, crash_handler);
