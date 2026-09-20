@@ -31,3 +31,5 @@ mkinstalldirs
 install-sh
 ltmain.sh
 .DS_Store
+
+Makefile
