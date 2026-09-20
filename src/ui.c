@@ -413,6 +413,8 @@ int KB_event(KBgamestate *state) {
 			int dir = 0;
 			if (k == SDLK_UP || k == SDLK_LEFT) dir = -1;
 			if (k == SDLK_DOWN || k == SDLK_RIGHT) dir = 1;
+			/* Dropdown menus (kbnav) keep Left/Right for switching tabs */
+			if (state->kbnav && (k == SDLK_LEFT || k == SDLK_RIGHT)) dir = 0;
 			if (dir) {
 				int next = nav_step(state, state->hover, dir);
 				if (next != -1) { state->hover = next; KB_flip(sys); }
