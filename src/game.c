@@ -6680,6 +6680,8 @@ void adventure_loop(KBgame *game) {
 					case TILE_DWELLING_1:
 					case TILE_DWELLING_2:
 					case TILE_DWELLING_3:	walk = visit_dwelling(game, m - TILE_DWELLING_1); break;
+					case 0x80: case 0x81: case 0x82: case 0x83:	/* DOS map dwellings */
+											walk = visit_dwelling(game, m - 0x80); break;
 					case TILE_SIGNPOST: 	read_signpost(game);    	break;
 					case TILE_FOE:      	walk = !attack_foe(game);
 					if (walk) continue;	break;
