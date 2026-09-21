@@ -6,6 +6,8 @@ The port ships with the game's free art set. Owners of the DOS original can copy
 
 Thanks to **Vitaly Driedfruit** for openkb, to **missandei** and **Santiago Iborra** for the free graphics, and to Jon Van Caneghem for the original game.
 
+**[Pavel Malai (flagman)](https://github.com/flagman)** maintains this fork and developed the SDL2 migration, engine and gameplay bug fixes, handheld controls, and PortMaster port.
+
 Source of this build: https://github.com/flagman/openkb (SDL2 port with gamepad-navigable menus, GPLv3). Config and saves live in `openkb/conf/.openkb/`.
 
 ## Controls
